@@ -1,0 +1,12 @@
+{
+  "name": "shop-os-agent",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shop-OS Estimate Agent (CIS 4394 Milestone II): public chat agent with tools, human approval gate, and a pass^k eval harness.",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "eval": "node eval/run-eval.js",
+    "test": "node test/offline-test.js"
+  }
+}

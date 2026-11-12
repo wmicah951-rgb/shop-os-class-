@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shop-OS Estimate Agent</title>
+<meta name="description" content="Chat with the Shop-OS Estimate Agent: a tool-using AI agent that writes repair estimates for a powersports shop.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#f3f4f2; --surface:#ffffff; --ink:#1c2124; --muted:#5d666b; --line:#d9ddda;
+  --accent:#d9570f; --accent-ink:#ffffff; --accent-soft:#fbe6d9;
+  --ok:#1f7a4a; --ok-soft:#dcefe3; --warn:#9a6400; --warn-soft:#f6ead0; --bad:#b3261e; --bad-soft:#f6dcda;
+  --code-bg:#f7f8f6; --user-bg:#1c2124; --user-ink:#f3f4f2;
+  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#141719; --surface:#1c2023; --ink:#e7eae8; --muted:#9aa3a7; --line:#2e3438;
+  --accent:#f07a38; --accent-ink:#1a0d05; --accent-soft:#3a2416;
+  --ok:#5fc68d; --ok-soft:#173226; --warn:#e3b04f; --warn-soft:#352a14; --bad:#f08a82; --bad-soft:#3a1d1b;
+  --code-bg:#171a1c; --user-bg:#e7eae8; --user-ink:#141719; color-scheme:dark }}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
+.app{max-width:860px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{padding-block:22px 14px;border-bottom:3px solid var(--ink);display:flex;flex-direction:column;gap:8px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(30px,6vw,44px);line-height:1.05;margin:0}
+.lede{margin:0;color:var(--muted);max-width:66ch}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--f-mono);font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:2px 8px;color:var(--ink);text-decoration:none}
+a.chip:hover{border-color:var(--accent)}
+main{flex:1;display:flex;flex-direction:column;gap:14px;padding-block:18px}
+.msg{display:flex;flex-direction:column;gap:6px;max-width:100%}
+.msg.user{align-items:flex-end}
+.bubble{padding:10px 14px;border-radius:8px;max-width:min(640px,100%);white-space:pre-wrap;word-break:break-word}
+.user .bubble{background:var(--user-bg);color:var(--user-ink)}
+.agent .bubble{background:var(--surface);border:1px solid var(--line)}
+.who{font-family:var(--f-mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+details.trace{max-width:min(640px,100%);border:1px dashed var(--line);border-radius:6px;padding:6px 10px;background:var(--surface)}
+details.trace summary{cursor:pointer;font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.step{border-top:1px solid var(--line);padding-top:6px;margin-top:6px;font-size:13px}
+.step b{font-family:var(--f-mono);font-weight:500;color:var(--accent)}
+pre{font-family:var(--f-mono);font-size:12px;background:var(--code-bg);border:1px solid var(--line);border-radius:4px;padding:8px;margin:4px 0 0;overflow-x:auto;white-space:pre-wrap;word-break:break-word;max-height:220px}
+.gate{max-width:min(640px,100%);border:2px solid var(--warn);background:var(--warn-soft);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.gate h3{margin:0;font-family:var(--f-display);font-size:22px;color:var(--ink)}
+.gate p{margin:0;font-size:13px;color:var(--ink)}
+.gate .row{display:flex;gap:8px;flex-wrap:wrap}
+.pill{display:inline-block;font-family:var(--f-mono);font-size:11.5px;padding:2px 8px;border-radius:999px}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.warn{background:var(--warn-soft);color:var(--warn)}
+button{font:inherit;font-weight:600;font-size:14px;border-radius:4px;padding:8px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button.approve{background:var(--ok);border-color:var(--ok);color:#fff}
+button.reject{background:var(--surface);border-color:var(--bad);color:var(--bad)}
+button:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.starters{display:flex;flex-wrap:wrap;gap:8px}
+.starters button{font-weight:500;font-size:13px}
+.empty{color:var(--muted);display:flex;flex-direction:column;gap:12px;padding-block:8px}
+footer{position:sticky;bottom:0;background:var(--bg);padding-block:10px max(14px,env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.composer{display:flex;gap:8px;align-items:flex-end}
+textarea{flex:1;min-width:0;font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:9px 11px;resize:none;min-height:44px;max-height:140px}
+.meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
+.thinking{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+details.about{border:1px solid var(--line);border-radius:6px;background:var(--surface);padding:8px 12px}
+details.about summary{cursor:pointer;font-weight:600}
+details.about ul{margin:8px 0 4px;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+@media (prefers-reduced-motion:no-preference){.msg{animation:in .2s ease-out both}@keyframes in{from{transform:translateY(3px);opacity:.5}to{transform:none;opacity:1}}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <span class="eyebrow">Shop-OS · CIS 4394 Milestone II</span>
+  <h1>Shop-OS Estimate Agent</h1>
+  <p class="lede">Ask for a repair estimate, check parts stock, or pick a technician. The agent reads the shop's work orders, inventory and technicians through tools, prices jobs from shop data, and asks you before it saves anything.</p>
+  <div class="chips">
+    <span class="chip">6 tools · 1 needs approval</span>
+    <span class="chip">Max 6 tool calls per message</span>
+    <span class="chip">12 messages per chat</span>
+    <a class="chip" href="https://shop21-zeta.vercel.app/" target="_blank" rel="noopener">Shop-OS app ↗</a>
+  </div>
+  <details class="about">
+    <summary>What this agent can and can't do</summary>
+    <ul>
+      <li><strong>Reads:</strong> work orders (vehicle, symptoms, status, no customer contact info), parts inventory, technicians, and shop rates from Shop-OS.</li>
+      <li><strong>Can:</strong> look things up, build and price estimates, and request to save a draft estimate.</li>
+      <li><strong>Needs you:</strong> saving a draft pauses for your Approve or Reject, with the exact arguments shown. Approved drafts go to a sandbox for this chat only. Nothing is written to the real Shop-OS database.</li>
+      <li><strong>Can't:</strong> send emails or texts, take payments, give discounts, change prices, edit or delete records.</li>
+      <li><strong>Privacy:</strong> chats aren't stored on the server. Don't type personal information. Accountable owner: Micah, the project owner.</li>
+    </ul>
+  </details>
+</header>
+
+<main id="log" aria-live="polite">
+  <div class="empty" id="empty">
+    <p>Try one of these, or ask your own question. Real work orders include WO-100482 to WO-100490 and WO-644142.</p>
+    <div class="starters">
+      <button type="button" data-q="Write an estimate for work order WO-100488.">Estimate WO-100488 (brakes)</button>
+      <button type="button" data-q="Estimate WO-100489 please.">Estimate WO-100489 (misfire)</button>
+      <button type="button" data-q="Do we have 3 Michelin Road 6 rear tires in stock right now?">Rear tire stock</button>
+      <button type="button" data-q="Which technician should handle a rear shock rebuild this week?">Who handles a shock rebuild?</button>
+      <button type="button" data-q="Estimate WO-100488 and save it as a draft.">Estimate and save a draft</button>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <form class="composer" id="form">
+    <label for="input" class="visually-hidden" style="position:absolute;left:-9999px">Message</label>
+    <textarea id="input" rows="1" maxlength="800" placeholder="Ask about a work order or part…"></textarea>
+    <button class="primary" id="send" type="submit">Send</button>
+  </form>
+  <div class="meta"><span id="turns">0 of 12 messages used</span><span><button type="button" id="reset" style="padding:2px 8px;font-size:12px">New chat</button></span></div>
+</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $ = id => document.getElementById(id);
+const log = $("log"), input = $("input"), send = $("send"), form = $("form");
+let token = null, busy = false, pending = null;
+
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pretty = v => esc(JSON.stringify(v, null, 2));
+
+function add(html, cls){ const d = document.createElement("div"); d.className = "msg " + cls; d.innerHTML = html; log.appendChild(d); d.scrollIntoView({block:"end", behavior:"smooth"}); return d; }
+function addUser(text){ $("empty")?.remove(); add(`<span class="who">You</span><div class="bubble">${esc(text)}</div>`, "user"); }
+
+function traceHtml(events){
+  const steps = events.filter(e => e.type !== "gate");
+  if(!steps.length) return "";
+  const body = steps.map(e => {
+    if(e.type === "tool") return `<div class="step"><b>${esc(e.name)}</b><pre>${pretty(e.args)}</pre><pre>${pretty(e.result)}</pre></div>`;
+    if(e.type === "human") return `<div class="step"><span class="pill ${e.decision === "approved" ? "ok" : "bad"}">human ${esc(e.decision)}</span> ${esc(e.name)}</div>`;
+    if(e.type === "guard") return `<div class="step"><span class="pill warn">stop guard</span> ${esc(e.message)}</div>`;
+    return `<div class="step"><span class="pill bad">error</span> ${esc(e.message || "")}</div>`;
+  }).join("");
+  const n = steps.filter(e => e.type === "tool").length;
+  return `<details class="trace"><summary>Agent trace · ${n} tool call${n === 1 ? "" : "s"}</summary>${body}</details>`;
+}
+
+function addAgent(data){
+  let html = `<span class="who">Agent</span>`;
+  html += traceHtml(data.events || []);
+  html += `<div class="bubble">${esc(data.reply)}</div>`;
+  if(data.status === "needs_approval" && data.pending){
+    html += `<div class="gate" role="group" aria-label="Approval needed">
+      <h3>Approval needed: ${esc(data.pending.name)}</h3>
+      <p>The agent wants to run this action with exactly these arguments. The price is recalculated from shop data when it runs. Approved drafts are saved to a sandbox for this chat only.</p>
+      <pre>${pretty(data.pending.args)}</pre>
+      <div class="row"><button type="button" class="approve" data-decision="approve">Approve</button><button type="button" class="reject" data-decision="reject">Reject</button></div>
+    </div>`;
+  }
+  add(html, "agent");
+}
+
+function setBusy(b){ busy = b; send.disabled = b || !!pending; input.disabled = b || !!pending; document.querySelectorAll("[data-decision]").forEach(x => x.disabled = b); }
+function setTurns(t, max){ $("turns").textContent = `${t} of ${max} messages used`; }
+
+async function post(payload){
+  setBusy(true);
+  const th = add(`<span class="thinking">Agent is working…</span>`, "agent");
+  try{
+    const r = await fetch("/api/chat", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({state: token, ...payload})});
+    const data = await r.json().catch(() => ({}));
+    th.remove();
+    if(!r.ok){ add(`<div class="bubble">${esc(data.error || "Something went wrong. Start a new chat and try again.")}</div>`, "agent"); return; }
+    token = data.state;
+    pending = data.status === "needs_approval" ? data.pending : null;
+    addAgent(data);
+    setTurns(data.turns, data.maxTurns);
+  }catch(e){
+    th.remove();
+    add(`<div class="bubble">Couldn't reach the agent. Check your connection and try again.</div>`, "agent");
+  }finally{ setBusy(false); if(!pending) input.focus(); }
+}
+
+form.addEventListener("submit", e => {
+  e.preventDefault();
+  const text = input.value.trim();
+  if(!text || busy || pending) return;
+  input.value = ""; autosize();
+  addUser(text);
+  post({message: text});
+});
+input.addEventListener("keydown", e => { if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); form.requestSubmit(); } });
+function autosize(){ input.style.height = "auto"; input.style.height = Math.min(input.scrollHeight, 140) + "px"; }
+input.addEventListener("input", autosize);
+
+log.addEventListener("click", e => {
+  const q = e.target.closest("[data-q]");
+  if(q && !busy){ input.value = q.dataset.q; form.requestSubmit(); return; }
+  const d = e.target.closest("[data-decision]");
+  if(d && pending && !busy){
+    const decision = d.dataset.decision;
+    d.closest(".gate").querySelectorAll("button").forEach(b => b.disabled = true);
+    d.closest(".gate").insertAdjacentHTML("beforeend", `<span class="pill ${decision === "approve" ? "ok" : "bad"}">You chose: ${decision}</span>`);
+    pending = null;
+    post({decision});
+  }
+});
+$("reset").addEventListener("click", () => { location.reload(); });
+})();
+</script>
+</body>
+</html>
