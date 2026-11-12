@@ -6,9 +6,9 @@ A public chat agent for Shop-OS, my powersports shop management app (https://sho
 
 | | Milestone I | Milestone II |
 |---|---|---|
-| Planner | Rule-based (keyword rules) | LLM with function calling (Google Gemini by default; any OpenAI-compatible model) |
+| Planner | Rule-based (keyword rules) | LLM with function calling (DeepSeek `deepseek-chat`; any OpenAI-compatible model works) |
 | Tools | search_inventory, check_stock, find_mechanic, calculate_estimate | Same four, plus **lookup_work_order** (reads real Shop-OS work orders) and **save_draft_estimate** (gated action) |
-| Stop condition | Max 6 iterations | Max 6 tool calls and 8 model calls per message, 12 messages per chat |
+| Stop condition | Max 6 iterations | Max 10 tool calls and 12 model calls per message, 12 messages per chat |
 | Human gate | None | Approve / Reject card showing the exact arguments before any save |
 | Access | Private page | Public link, no login |
 
@@ -28,21 +28,21 @@ Expansion used for the rubric: **a second real tool** (`lookup_work_order`, whic
 
 ## Deploy (PowerShell, about 5 minutes)
 
-1. Get a free Gemini API key at https://aistudio.google.com/apikey. Don't turn on billing for it; that keeps the cost at $0 even if someone spams the link.
+1. Get a DeepSeek API key at https://platform.deepseek.com. Keep only a few dollars of prepaid credit and no auto-recharge, so spam can't run up a bill.
 2. Open PowerShell in this folder: `cd ~\shop-os\agent`
 3. Deploy: `npx vercel@latest` and answer: set up and deploy **Y**, link to existing project **N**, name **shop-os-agent**, directory **./**, change settings **N**.
-4. Add the key: `npx vercel@latest env add LLM_API_KEY production` and paste the key when asked.
+4. Add three env vars with `npx vercel@latest env add <NAME> production`: `LLM_API_KEY` (your key), `LLM_BASE_URL` = `https://api.deepseek.com`, `LLM_MODEL` = `deepseek-chat`.
 5. Optional, live Shop-OS data instead of the snapshot: add `DATA_MODE` = `live`, `SHOP_OS_EMAIL` and `SHOP_OS_PASSWORD` (your demo owner login) the same way.
 6. Ship it: `npx vercel@latest --prod`. The URL it prints (e.g. https://shop-os-agent.vercel.app) is your public link.
 7. Test on your phone with Wi-Fi off. If Vercel asks you to log in, go to the project's Settings → Deployment Protection and turn Vercel Authentication off.
 
-If the chat says the model call failed, check the function logs in Vercel. A "model not found" error means you should set `LLM_MODEL` to a current Gemini Flash model name (for example `gemini-2.5-flash`) and redeploy.
+If the chat says the model call failed, check the function logs in Vercel. A "model not found" error means you should check `LLM_MODEL` is `deepseek-chat` and `LLM_BASE_URL` is `https://api.deepseek.com`, then redeploy.
 
 ## Run the evaluation
 
 ```powershell
 cd ~\shop-os\agent
-$env:LLM_API_KEY="your-key"
+$env:LLM_API_KEY="your-key"; $env:LLM_BASE_URL="https://api.deepseek.com"; $env:LLM_MODEL="deepseek-chat"
 node eval/run-eval.js
 ```
 
@@ -55,6 +55,6 @@ pass^k is the tau-bench estimator: for each case with c passes out of n trials, 
 ## Run locally
 
 ```powershell
-$env:LLM_API_KEY="your-key"; node dev-server.js     # http://localhost:3000
+$env:LLM_API_KEY="your-key"; $env:LLM_BASE_URL="https://api.deepseek.com"; $env:LLM_MODEL="deepseek-chat"; node dev-server.js     # http://localhost:3000
 node test/offline-test.js                           # no key needed
 ```
