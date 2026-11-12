@@ -25,6 +25,7 @@ Expansion used for the rubric: **a second real tool** (`lookup_work_order`, whic
 - `eval/run-eval.js` · the eval harness (pass@1 and pass^k)
 - `test/offline-test.js` · loop, guard, gate and state-signing tests with a fake model (no key needed)
 - `GOVERNANCE.md` · governance note
+- `EVAL.md` · eval results (pass@1 vs pass^k) and failure analysis
 
 ## Deploy (PowerShell, about 5 minutes)
 
