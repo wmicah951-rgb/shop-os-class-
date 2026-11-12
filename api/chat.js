@@ -6,7 +6,7 @@ import { runTurn, openState, sealState, LIMITS } from "../lib/agent.js";
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   if (req.method === "GET") {
-    return res.status(200).json({ ok: true, limits: LIMITS, model: process.env.LLM_MODEL || "gemini-flash-latest", configured: !!process.env.LLM_API_KEY });
+    return res.status(200).json({ ok: true, limits: LIMITS, model: process.env.LLM_MODEL || "deepseek-chat", configured: !!process.env.LLM_API_KEY });
   }
   if (req.method !== "POST") return res.status(405).json({ error: "Use POST." });
 
@@ -20,7 +20,9 @@ export default async function handler(req, res) {
 
   const input = body.decision === "approve" || body.decision === "reject"
     ? { decision: body.decision }
-    : { userText: typeof body.message === "string" ? body.message : "" };
+    : body.newJob && typeof body.newJob === "object"
+      ? { newJob: { vehicle: body.newJob.vehicle, symptoms: body.newJob.symptoms } }
+      : { userText: typeof body.message === "string" ? body.message : "" };
 
   const out = await runTurn(state, input);
   return res.status(200).json({
@@ -30,6 +32,8 @@ export default async function handler(req, res) {
     events: out.events.map(e => e.type === "tool" ? { ...e, result: trim(e.result) } : e),
     pending: out.state.pending ? { name: out.state.pending.name, args: out.state.pending.args } : null,
     turns: out.state.turns,
+    jobs: out.state.jobs || [],
+    drafts: out.state.drafts || [],
     maxTurns: LIMITS.maxTurnsPerSession
   });
 }

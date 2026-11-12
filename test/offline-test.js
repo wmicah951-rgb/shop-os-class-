@@ -59,3 +59,35 @@ console.log("rear tire:", JSON.stringify((await runTool("search_inventory", { qu
 console.log("suspension tech:", (await runTool("find_mechanic", { specialty: "suspension", hours: 3 })).technicians[0].name);
 console.log("shock tech:", (await runTool("find_mechanic", { specialty: "rear shock rebuild" })).technicians[0].name);
 console.log("\nALL OFFLINE TESTS PASSED");
+
+// 7. Sandbox work order: visitor opens a job, agent can look it up, and a save of it goes through the gate
+{
+  const opened = await runTurn(newState(), { newJob: { vehicle: "2019 Yamaha YZ250F", symptoms: "Hard to start when hot, bogs off idle" } }, { callModel: script([
+    { role: "assistant", content: null, tool_calls: [call("j1", "lookup_work_order", { ticket: "__T__" })] },
+    { role: "assistant", content: "Likely causes: ..." }
+  ]) });
+  const job = opened.state.jobs[0];
+  assert.ok(job && /^WO-9\d{5}$/.test(job.ticket) && job.sandbox, "sandbox job created");
+  assert.equal(opened.events[0].type, "job");
+  assert.match(opened.state.messages[0].content, new RegExp(job.ticket));
+  // lookup of the sandbox ticket resolves through ctx.jobs
+  const found = await runTool("lookup_work_order", { ticket: job.ticket }, { jobs: opened.state.jobs });
+  assert.equal(found.found, true); assert.equal(found.vehicle, "2019 Yamaha YZ250F");
+  const notFound = await runTool("lookup_work_order", { ticket: job.ticket });
+  assert.equal(notFound.found, false, "sandbox jobs are invisible outside their own chat");
+  // save -> gate -> approve saves the sandbox ticket with a recomputed price
+  const ask = await runTurn(opened.state, { userText: "save it" }, { callModel: script([
+    { role: "assistant", content: null, tool_calls: [call("s1", "save_draft_estimate", { ticket: job.ticket, labor_hours: 1, mechanic_id: 9, parts: [{ part_id: 37, qty: 1 }], total: 1 })] }
+  ]) });
+  assert.equal(ask.status, "needs_approval");
+  const ok = await runTurn(ask.state, { decision: "approve" }, { callModel: script([{ role: "assistant", content: "Saved." }]) });
+  const saved = ok.events.find(e => e.type === "tool" && e.name === "save_draft_estimate").result;
+  assert.equal(saved.saved, true); assert.equal(saved.ticket, job.ticket); assert.equal(saved.total, 138.01);
+  // input validation and cap
+  const bad = await runTurn(newState(), { newJob: { vehicle: "x", symptoms: "" } });
+  assert.equal(bad.status, "error");
+  let st2 = newState(); st2.jobs = [{}, {}, {}];
+  assert.equal((await runTurn(st2, { newJob: { vehicle: "2020 KTM", symptoms: "noise from engine" } })).status, "error");
+  console.log("sandbox job ok:", job.ticket, "saved total", saved.total);
+}
+console.log("ALL OFFLINE TESTS PASSED (incl. sandbox jobs)");

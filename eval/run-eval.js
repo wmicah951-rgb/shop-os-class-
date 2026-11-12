@@ -92,7 +92,7 @@ function grade(c, run) {
 const choose = (n, r) => { if (r > n) return 0; let x = 1; for (let i = 0; i < r; i++) x = x * (n - i) / (i + 1); return x; };
 
 const started = new Date();
-console.log(`Shop-OS agent eval · ${cases.length} cases × ${TRIALS} trials · model ${process.env.LLM_MODEL || "gemini-flash-latest"}\n`);
+console.log(`Shop-OS agent eval · ${cases.length} cases × ${TRIALS} trials · model ${process.env.LLM_MODEL || "deepseek-chat"}\n`);
 const results = [];
 for (const c of cases) {
   const trials = [];
@@ -120,10 +120,10 @@ for (const k of ks) console.log(`pass^${k} = ${(passHat(k) * 100).toFixed(1)}%`)
 const stamp = started.toISOString().replace(/[:.]/g, "-").slice(0, 19);
 const outDir = join(here, "results");
 mkdirSync(outDir, { recursive: true });
-writeFileSync(join(outDir, `run-${stamp}.json`), JSON.stringify({ started: started.toISOString(), model: process.env.LLM_MODEL || "gemini-flash-latest", trials: n, passAt1, passHat: Object.fromEntries(ks.map(k => [k, passHat(k)])), results }, null, 2));
+writeFileSync(join(outDir, `run-${stamp}.json`), JSON.stringify({ started: started.toISOString(), model: process.env.LLM_MODEL || "deepseek-chat", trials: n, passAt1, passHat: Object.fromEntries(ks.map(k => [k, passHat(k)])), results }, null, 2));
 
 const md = [];
-md.push(`# Shop-OS Estimate Agent · eval report`, ``, `Run ${started.toLocaleString()} · model \`${process.env.LLM_MODEL || "gemini-flash-latest"}\` · ${results.length} cases × ${n} trials · data: bundled snapshot`, ``);
+md.push(`# Shop-OS Estimate Agent · eval report`, ``, `Run ${started.toLocaleString()} · model \`${process.env.LLM_MODEL || "deepseek-chat"}\` · ${results.length} cases × ${n} trials · data: bundled snapshot`, ``);
 md.push(`| Metric | Score |`, `|---|---|`, `| pass@1 | ${(passAt1 * 100).toFixed(1)}% |`, ...ks.map(k => `| pass^${k} | ${(passHat(k) * 100).toFixed(1)}% |`), ``);
 md.push(`| Case | Type | Passes | pass@1 | pass^${n} |`, `|---|---|---|---|---|`);
 for (const r of results) md.push(`| ${r.id} | ${r.kind} | ${r.passes}/${n} | ${(r.passes / n * 100).toFixed(0)}% | ${r.passes === n ? "100%" : "0%"} |`);

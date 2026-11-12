@@ -3,210 +3,707 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Shop-OS Estimate Agent</title>
-<meta name="description" content="Chat with the Shop-OS Estimate Agent: a tool-using AI agent that writes repair estimates for a powersports shop.">
+<title>Shop-OS Agent Demo</title>
+<meta name="description" content="Try the Shop-OS repair-shop app and its AI estimate agent: open a work order, describe a suspected issue, and talk it through with the agent. Nothing saves without your approval.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
 :root{
-  --bg:#f3f4f2; --surface:#ffffff; --ink:#1c2124; --muted:#5d666b; --line:#d9ddda;
-  --accent:#d9570f; --accent-ink:#ffffff; --accent-soft:#fbe6d9;
-  --ok:#1f7a4a; --ok-soft:#dcefe3; --warn:#9a6400; --warn-soft:#f6ead0; --bad:#b3261e; --bad-soft:#f6dcda;
-  --code-bg:#f7f8f6; --user-bg:#1c2124; --user-ink:#f3f4f2;
-  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
-  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --bg:hsl(210 20% 98%); --fg:hsl(222 47% 11%); --card:#fff; --border:hsl(220 13% 91%);
+  --muted:hsl(220 14% 96%); --muted-fg:hsl(220 9% 46%);
+  --primary:hsl(217 91% 53%); --primary-hover:hsl(217 91% 47%); --primary-soft:hsl(214 95% 96%);
+  --sidebar:hsl(215 74% 15%); --sidebar-accent:hsl(215 62% 25%); --sidebar-border:hsl(215 62% 20%);
+  --ok:#15803d; --ok-soft:#dcfce7; --warn:#b45309; --warn-soft:#fef3c7; --bad:#dc2626; --bad-soft:#fee2e2;
+  --violet:#6d28d9; --violet-soft:#ede9fe; --teal:#0f766e; --teal-soft:#ccfbf1; --gray:#475569; --gray-soft:#f1f5f9;
+  --radius:.5rem; --shadow:0 1px 2px rgba(0,0,0,.04),0 1px 3px rgba(0,0,0,.03);
+  --font:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
   color-scheme:light;
 }
-@media (prefers-color-scheme: dark){:root{
-  --bg:#141719; --surface:#1c2023; --ink:#e7eae8; --muted:#9aa3a7; --line:#2e3438;
-  --accent:#f07a38; --accent-ink:#1a0d05; --accent-soft:#3a2416;
-  --ok:#5fc68d; --ok-soft:#173226; --warn:#e3b04f; --warn-soft:#352a14; --bad:#f08a82; --bad-soft:#3a1d1b;
-  --code-bg:#171a1c; --user-bg:#e7eae8; --user-ink:#141719; color-scheme:dark }}
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
-.app{max-width:860px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-header{padding-block:22px 14px;border-bottom:3px solid var(--ink);display:flex;flex-direction:column;gap:8px}
-.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-h1{font-family:var(--f-display);font-weight:700;font-size:clamp(30px,6vw,44px);line-height:1.05;margin:0}
-.lede{margin:0;color:var(--muted);max-width:66ch}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{font-family:var(--f-mono);font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:2px 8px;color:var(--ink);text-decoration:none}
-a.chip:hover{border-color:var(--accent)}
-main{flex:1;display:flex;flex-direction:column;gap:14px;padding-block:18px}
-.msg{display:flex;flex-direction:column;gap:6px;max-width:100%}
-.msg.user{align-items:flex-end}
-.bubble{padding:10px 14px;border-radius:8px;max-width:min(640px,100%);white-space:pre-wrap;word-break:break-word}
-.user .bubble{background:var(--user-bg);color:var(--user-ink)}
-.agent .bubble{background:var(--surface);border:1px solid var(--line)}
-.who{font-family:var(--f-mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
-details.trace{max-width:min(640px,100%);border:1px dashed var(--line);border-radius:6px;padding:6px 10px;background:var(--surface)}
-details.trace summary{cursor:pointer;font-family:var(--f-mono);font-size:12px;color:var(--muted)}
-.step{border-top:1px solid var(--line);padding-top:6px;margin-top:6px;font-size:13px}
-.step b{font-family:var(--f-mono);font-weight:500;color:var(--accent)}
-pre{font-family:var(--f-mono);font-size:12px;background:var(--code-bg);border:1px solid var(--line);border-radius:4px;padding:8px;margin:4px 0 0;overflow-x:auto;white-space:pre-wrap;word-break:break-word;max-height:220px}
-.gate{max-width:min(640px,100%);border:2px solid var(--warn);background:var(--warn-soft);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
-.gate h3{margin:0;font-family:var(--f-display);font-size:22px;color:var(--ink)}
-.gate p{margin:0;font-size:13px;color:var(--ink)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--primary)}
+button{font:inherit;cursor:pointer}
+svg.i{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+
+/* Sidebar (matches Shop-OS sidebar-nav) */
+.sidebar{position:fixed;inset:0 auto 0 0;width:256px;background:var(--sidebar);color:#fff;display:flex;flex-direction:column;border-right:1px solid var(--sidebar-border);z-index:40;transition:transform .2s}
+.logo{height:64px;display:flex;align-items:center;gap:10px;padding:0 20px;border-bottom:1px solid var(--sidebar-border);font-weight:700;font-size:18px;letter-spacing:-.01em;color:#fff;text-decoration:none;flex:none}
+.logo .mark{width:32px;height:32px;border-radius:8px;background:var(--primary);display:grid;place-items:center}
+.nav{flex:1;overflow-y:auto;padding:16px 12px;display:flex;flex-direction:column;gap:2px}
+.nav a{display:flex;align-items:center;gap:12px;padding:10px 12px;min-height:44px;border-radius:6px;font-size:14px;font-weight:500;color:rgba(255,255,255,.6);text-decoration:none;transition:background .15s,color .15s}
+.nav a:hover{background:hsl(215 62% 25% / .6);color:#fff}
+.nav a[aria-current="page"]{background:var(--sidebar-accent);color:#fff}
+.nav .sep{height:1px;background:var(--sidebar-border);margin:10px 4px}
+.nav .tag{margin-left:auto;font-size:10px;font-weight:600;letter-spacing:.04em;padding:1px 6px;border-radius:999px;background:var(--primary);color:#fff}
+.nav .lock{margin-left:auto;display:inline-flex;color:rgba(255,255,255,.35)}
+.side-foot{padding:12px 12px 16px;border-top:1px solid var(--sidebar-border);display:flex;flex-direction:column;gap:8px;flex:none}
+.btn-new{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--primary);color:#fff;border:0;border-radius:6px;padding:10px 16px;font-weight:600;font-size:14px;text-decoration:none}
+.btn-new:hover{background:var(--primary-hover)}
+.user{display:flex;align-items:center;gap:10px;padding:6px 4px}
+.avatar{width:28px;height:28px;border-radius:999px;background:var(--sidebar-accent);display:grid;place-items:center;font-size:12px;font-weight:600;flex:none}
+.user small{display:inline-block;font-size:10px;padding:0 6px;border-radius:4px;border:1px solid rgba(245,158,11,.3);background:rgba(245,158,11,.2);color:#fcd34d}
+
+/* Main */
+.main{margin-left:256px;min-height:100%;display:flex;flex-direction:column}
+.topbar{height:64px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 24px;position:sticky;top:0;z-index:30}
+.topbar h1{font-size:18px;font-weight:600;margin:0;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.grow{flex:1}
+.menu-btn{display:none;border:1px solid var(--border);background:var(--card);border-radius:6px;padding:8px;color:var(--fg)}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.pill.demo{background:var(--teal-soft);color:var(--teal)}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);border-radius:6px;padding:7px 12px;font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap}
+.btn:hover{background:var(--muted)}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.primary:hover{background:var(--primary-hover)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.content{padding:24px;flex:1;width:100%;max-width:1320px;outline:0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);min-width:0}
+.card-h{padding:16px 20px 0;display:flex;align-items:center;gap:8px}
+.card-h h2{font-size:15px;font-weight:600;margin:0}
+.card-h .sub{color:var(--muted-fg);font-size:12px;margin-left:auto;text-decoration:none}
+a.sub:hover{color:var(--primary)}
+.card-b{padding:16px 20px 20px}
+.muted{color:var(--muted-fg)}
+.mono{font-family:var(--mono);font-size:12px}
+.grid{display:grid;gap:16px}
+.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.kpi .label{font-size:13px;color:var(--muted-fg);font-weight:500}
+.kpi .val{font-size:28px;font-weight:700;letter-spacing:-.02em;margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi .hint{font-size:12px;color:var(--muted-fg)}
+.two{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
+.badge{display:inline-flex;align-items:center;font-size:12px;font-weight:500;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.s-blue{background:var(--primary-soft);color:hsl(217 80% 40%)} .s-amber{background:var(--warn-soft);color:var(--warn)}
+.s-violet{background:var(--violet-soft);color:var(--violet)} .s-green{background:var(--ok-soft);color:var(--ok)}
+.s-gray{background:var(--gray-soft);color:var(--gray)} .s-teal{background:var(--teal-soft);color:var(--teal)} .s-red{background:var(--bad-soft);color:var(--bad)}
+
+.intro{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
+.step{border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--bg)}
+.step b{display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:4px}
+.step .n{width:22px;height:22px;border-radius:999px;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
+.step p{margin:0;font-size:13px;color:var(--muted-fg)}
+.hero{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.hero h2{font-size:20px;margin:0 0 4px;letter-spacing:-.01em}
+.hero p{margin:0;color:var(--muted-fg);max-width:70ch}
+
+.tbl-wrap{overflow-x:auto}
+table.t{width:100%;border-collapse:collapse;font-size:13px}
+table.t th{text-align:left;font-weight:500;color:var(--muted-fg);padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap;font-size:12px}
+table.t td{padding:12px;border-bottom:1px solid var(--border);vertical-align:top}
+table.t tr:last-child td{border-bottom:0}
+table.t tr.click{cursor:pointer} table.t tr.click:hover td{background:var(--bg)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.search{display:flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--card);border-radius:6px;padding:0 10px;flex:1;min-width:0;max-width:420px;color:var(--muted-fg)}
+.search input{border:0;outline:0;background:transparent;font:inherit;padding:8px 0;flex:1;min-width:0;color:var(--fg)}
+.bar{height:6px;background:var(--muted);border-radius:999px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--primary);border-radius:999px}
+.pipe{display:flex;flex-direction:column;gap:10px}
+.pipe a{display:grid;grid-template-columns:140px 1fr 24px;gap:10px;align-items:center;text-decoration:none;color:inherit;font-size:13px}
+.pipe a:hover .lbl{color:var(--primary)}
+.list{display:flex;flex-direction:column}
+.list a{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);text-decoration:none;color:inherit}
+.list a:last-child{border-bottom:0}
+.list a:hover .v b{color:var(--primary)}
+.ellip{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+
+label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500}
+.in{font:inherit;font-weight:400;color:var(--fg);background:var(--card);border:1px solid var(--border);border-radius:6px;padding:9px 11px;width:100%}
+textarea.in{resize:vertical;min-height:110px}
+.examples{display:flex;flex-wrap:wrap;gap:6px}
+.chipbtn{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:5px 11px;font-size:12.5px;color:var(--fg)}
+.chipbtn:hover{border-color:var(--primary);color:var(--primary)}
+
+/* Job workspace */
+.ws{display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);gap:16px;align-items:start}
+.ws-side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px;margin:0}
+.kv dt{color:var(--muted-fg)} .kv dd{margin:0}
+.concern{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px}
+.est-row{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:6px 0;border-bottom:1px dashed var(--border)}
+.est-total{display:flex;justify-content:space-between;align-items:baseline;margin-top:10px;padding-top:10px;border-top:2px solid var(--fg)}
+.est-total b{font-size:22px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.empty-est{border:1px dashed var(--border);border-radius:8px;padding:16px;text-align:center;color:var(--muted-fg);font-size:13px}
+
+/* Chat */
+.chat{display:flex;flex-direction:column;height:calc(100vh - 64px - 48px);min-height:520px}
+.chat-h{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}
+.bot{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--primary),hsl(250 80% 60%));color:#fff;display:grid;place-items:center;flex:none}
+.chat-h .t{font-weight:600;font-size:14px;line-height:1.2}
+.chat-h .s{font-size:12px;color:var(--muted-fg)}
+.chat-log{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;background:var(--bg)}
+.m{display:flex;flex-direction:column;gap:6px;max-width:100%}
+.m.user{align-items:flex-end}
+.who{font-size:11px;color:var(--muted-fg);font-weight:500}
+.bubble{padding:10px 14px;border-radius:12px;max-width:min(680px,100%);word-break:break-word}
+.user .bubble{background:var(--primary);color:#fff;border-bottom-right-radius:4px;white-space:pre-wrap}
+.agent .bubble{background:var(--card);border:1px solid var(--border);border-bottom-left-radius:4px}
+.bubble p{margin:0 0 8px} .bubble p:last-child{margin-bottom:0}
+.bubble ul,.bubble ol{margin:4px 0 8px;padding-left:20px} .bubble li{margin:2px 0}
+.bubble .mdh{font-weight:600}
+.bubble code{font-family:var(--mono);font-size:12px;background:var(--muted);padding:1px 4px;border-radius:4px}
+.bubble hr{border:0;border-top:1px solid var(--border);margin:8px 0}
+.mdt{overflow-x:auto;margin:6px 0 8px}
+.mdt table{border-collapse:collapse;font-size:12.5px;width:100%}
+.mdt th,.mdt td{border:1px solid var(--border);padding:5px 8px;text-align:left}
+.mdt th{background:var(--bg);font-weight:600}
+details.trace{max-width:min(680px,100%);border:1px solid var(--border);border-radius:10px;background:var(--card);font-size:12.5px}
+details.trace>summary{cursor:pointer;padding:8px 12px;color:var(--muted-fg);display:flex;align-items:center;gap:8px;list-style:none}
+details.trace>summary::-webkit-details-marker{display:none}
+details.trace>summary::after{content:"Show";margin-left:auto;font-size:11px;color:var(--primary)} details.trace[open]>summary::after{content:"Hide"}
+.tsteps{padding:0 12px 10px;display:flex;flex-direction:column;gap:8px}
+.tstep{border-left:2px solid var(--primary);padding-left:10px}
+.tstep .nm{font-family:var(--mono);font-weight:500;color:var(--primary)}
+.tstep .say{color:var(--muted-fg)}
+pre{font-family:var(--mono);font-size:11.5px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px;margin:4px 0 0;overflow:auto;white-space:pre-wrap;word-break:break-word;max-height:200px}
+.gate{max-width:min(680px,100%);border:2px solid #f59e0b;background:#fffbeb;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.gate h3{margin:0;font-size:15px;display:flex;align-items:center;gap:8px}
+.gate p{margin:0;font-size:13px}
 .gate .row{display:flex;gap:8px;flex-wrap:wrap}
-.pill{display:inline-block;font-family:var(--f-mono);font-size:11.5px;padding:2px 8px;border-radius:999px}
-.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.warn{background:var(--warn-soft);color:var(--warn)}
-button{font:inherit;font-weight:600;font-size:14px;border-radius:4px;padding:8px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
-button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-button.approve{background:var(--ok);border-color:var(--ok);color:#fff}
-button.reject{background:var(--surface);border-color:var(--bad);color:var(--bad)}
-button:disabled{opacity:.5;cursor:not-allowed}
-button:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.starters{display:flex;flex-wrap:wrap;gap:8px}
-.starters button{font-weight:500;font-size:13px}
-.empty{color:var(--muted);display:flex;flex-direction:column;gap:12px;padding-block:8px}
-footer{position:sticky;bottom:0;background:var(--bg);padding-block:10px max(14px,env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.btn.approve{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.reject{border-color:var(--bad);color:var(--bad)}
+.thinking{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted-fg)}
+.dots{display:inline-flex;gap:3px}.dots i{width:6px;height:6px;border-radius:99px;background:var(--primary);opacity:.3;animation:b 1s infinite}.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes b{50%{opacity:1}}
+.chat-foot{border-top:1px solid var(--border);padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px;background:var(--card);border-radius:0 0 12px 12px}
+.followups{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.followups:empty{display:none}
+.followups .chipbtn{white-space:nowrap}
 .composer{display:flex;gap:8px;align-items:flex-end}
-textarea{flex:1;min-width:0;font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:9px 11px;resize:none;min-height:44px;max-height:140px}
-.meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
-.thinking{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
-details.about{border:1px solid var(--line);border-radius:6px;background:var(--surface);padding:8px 12px}
-details.about summary{cursor:pointer;font-weight:600}
-details.about ul{margin:8px 0 4px;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:14px}
-@media (prefers-reduced-motion:no-preference){.msg{animation:in .2s ease-out both}@keyframes in{from{transform:translateY(3px);opacity:.5}to{transform:none;opacity:1}}}
+.composer textarea{flex:1;min-width:0;font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--border);border-radius:8px;padding:9px 11px;resize:none;min-height:42px;max-height:140px}
+.meta{display:flex;justify-content:space-between;gap:10px;font-size:11.5px;color:var(--muted-fg)}
+.linkbtn{border:0;background:none;color:var(--primary);padding:0;font-size:11.5px}
+.notice{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--border);background:var(--card);border-radius:10px;padding:12px 14px;font-size:13px}
+.notice.warn{border-color:#fcd34d;background:#fffbeb}
+.mech{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.mech .card-b{display:flex;flex-direction:column;gap:10px}
+dialog{border:0;border-radius:14px;padding:0;max-width:min(720px,calc(100vw - 32px));width:100%;max-height:calc(100vh - 32px);overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);color:var(--fg)}
+dialog::backdrop{background:rgba(15,31,61,.5)}
+.dlg-b{padding:22px}
+.dlg-b h2{margin:0 0 4px;font-size:20px}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;font-size:13px}
+.facts div{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.sr{position:absolute;left:-9999px}
+.scrim{display:none}
+@media (max-width:1100px){.ws{grid-template-columns:1fr}.chat{height:auto;min-height:0}.chat-log{min-height:320px}.chat-foot{position:sticky;bottom:0}}
+@media (max-width:900px){
+  .sidebar{transform:translateX(-100%)} body.nav-open .sidebar{transform:none}
+  body.nav-open .scrim{display:block;position:fixed;inset:0;background:rgba(15,31,61,.4);z-index:35}
+  .main{margin-left:0} .menu-btn{display:inline-flex}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))} .two{grid-template-columns:1fr} .intro{grid-template-columns:1fr}
+  .content{padding:16px} .topbar{padding:0 16px} .hide-sm{display:none}
+  .facts{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<div class="app">
-<header>
-  <span class="eyebrow">Shop-OS · CIS 4394 Milestone II</span>
-  <h1>Shop-OS Estimate Agent</h1>
-  <p class="lede">Ask for a repair estimate, check parts stock, or pick a technician. The agent reads the shop's work orders, inventory and technicians through tools, prices jobs from shop data, and asks you before it saves anything.</p>
-  <div class="chips">
-    <span class="chip">6 tools · 1 needs approval</span>
-    <span class="chip">Max 10 tool calls per message</span>
-    <span class="chip">12 messages per chat</span>
-    <a class="chip" href="https://shop21-zeta.vercel.app/" target="_blank" rel="noopener">Shop-OS app ↗</a>
+<aside class="sidebar" id="sidebar" aria-label="Main navigation">
+  <a class="logo" href="#/dashboard" title="Go to dashboard"><span class="mark"><span data-i="wrench"></span></span><span>Shop-OS</span></a>
+  <nav class="nav" id="nav"></nav>
+  <div class="side-foot">
+    <a class="btn-new" href="#/new"><span data-i="plus"></span>New Job</a>
+    <div class="user"><span class="avatar">D</span><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500">Demo Viewer</div><small>owner</small></div></div>
   </div>
-  <details class="about">
-    <summary>What this agent can and can't do</summary>
-    <ul>
-      <li><strong>Reads:</strong> work orders (vehicle, symptoms, status, no customer contact info), parts inventory, technicians, and shop rates from Shop-OS.</li>
-      <li><strong>Can:</strong> look things up, build and price estimates, and request to save a draft estimate.</li>
-      <li><strong>Needs you:</strong> saving a draft pauses for your Approve or Reject, with the exact arguments shown. Approved drafts go to a sandbox for this chat only. Nothing is written to the real Shop-OS database.</li>
-      <li><strong>Can't:</strong> send emails or texts, take payments, give discounts, change prices, edit or delete records.</li>
-      <li><strong>Privacy:</strong> chats aren't stored on the server. Don't type personal information. Accountable owner: Micah, the project owner.</li>
-    </ul>
-  </details>
-</header>
+</aside>
+<div class="scrim" id="scrim"></div>
+<div class="main">
+  <header class="topbar">
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu"><span data-i="menu"></span></button>
+    <h1 id="title">Dashboard</h1>
+    <span class="pill demo hide-sm"><span data-i="shield"></span>Public demo · sandbox data</span>
+    <span class="grow"></span>
+    <button class="btn" id="howBtn"><span data-i="info"></span><span class="hide-sm">How this works</span></button>
+    <a class="btn hide-sm" href="https://shop21-zeta.vercel.app/" target="_blank" rel="noopener">Full app <span data-i="ext"></span></a>
+  </header>
+  <main class="content" id="view" tabindex="-1"></main>
+</div>
 
-<main id="log" aria-live="polite">
-  <div class="empty" id="empty">
-    <p>Try one of these, or ask your own question. Real work orders include WO-100482 to WO-100490 and WO-644142.</p>
-    <div class="starters">
-      <button type="button" data-q="Write an estimate for work order WO-100488.">Estimate WO-100488 (brakes)</button>
-      <button type="button" data-q="Estimate WO-100489 please.">Estimate WO-100489 (misfire)</button>
-      <button type="button" data-q="Do we have 3 Michelin Road 6 rear tires in stock right now?">Rear tire stock</button>
-      <button type="button" data-q="Which technician should handle a rear shock rebuild this week?">Who handles a shock rebuild?</button>
-      <button type="button" data-q="Estimate WO-100488 and save it as a draft.">Estimate and save a draft</button>
+<dialog id="how" aria-labelledby="howTitle">
+  <div class="dlg-b">
+    <span class="pill demo">Shop-OS · AI Estimate Agent</span>
+    <h2 id="howTitle" style="margin-top:10px">What you're looking at</h2>
+    <p class="muted" style="margin:0">Shop-OS is a management app for motorcycle and powersports repair shops: work orders, parts, technicians and customers in one place. This public demo shows the shop side of the app with a built-in AI agent that writes repair estimates the way a service writer would. You stay in charge.</p>
+    <div class="intro">
+      <div class="step"><b><span class="n">1</span>Open a job</b><p>Pick a work order, or create one with the vehicle and the suspected issue in the customer's words.</p></div>
+      <div class="step"><b><span class="n">2</span>Talk it through</b><p>The agent ranks likely causes and prices the repair from the shop's real parts, rates and technicians. Every tool it uses is shown. Add details and it updates the estimate.</p></div>
+      <div class="step"><b><span class="n">3</span>You approve</b><p>Saving a draft stops at a yellow approval card showing exactly what will be saved. Nothing happens until you click Approve.</p></div>
+    </div>
+    <div class="facts">
+      <div><b>Real:</b> the parts catalog, stock, labor rates and technicians are a snapshot of the Shop-OS demo shop. Prices are calculated, never made up.</div>
+      <div><b>Sandbox:</b> jobs you create and drafts you approve exist only in this browser tab. Nothing is written to Shop-OS. Customer contact details are removed.</div>
+      <div><b>Can't:</b> send emails or texts, take payments, give discounts, change prices, or edit or delete records.</div>
+      <div><b>Limits:</b> 12 messages per chat, 10 tool calls per message. Accountable owner: Micah (project owner, CIS 4394).</div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap">
+      <a class="btn" href="#/jobs" data-close>Browse jobs</a>
+      <a class="btn primary" href="#/new" data-close><span data-i="plus"></span>Start with a suspected issue</a>
     </div>
   </div>
-</main>
-
-<footer>
-  <form class="composer" id="form">
-    <label for="input" class="visually-hidden" style="position:absolute;left:-9999px">Message</label>
-    <textarea id="input" rows="1" maxlength="800" placeholder="Ask about a work order or part…"></textarea>
-    <button class="primary" id="send" type="submit">Send</button>
-  </form>
-  <div class="meta"><span id="turns">0 of 12 messages used</span><span><button type="button" id="reset" style="padding:2px 8px;font-size:12px">New chat</button></span></div>
-</footer>
-</div>
+</dialog>
 
 <script>
 (function(){
 "use strict";
+const ICONS = {
+  dashboard:'<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+  jobs:'<path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/>',
+  clients:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  vehicles:'<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>',
+  calendar:'<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>',
+  schedule:'<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  mechanics:'<path d="M2 18a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v2z"/><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M4 15v-3a6 6 0 0 1 6-6"/><path d="M14 6a6 6 0 0 1 6 6v3"/>',
+  inventory:'<path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/>',
+  reports:'<path d="M18 20V10M12 20V4M6 20v-6"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 4.7 15a1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 9 4.7a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  wrench:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9l-3.8 3.8z"/>',
+  agent:'<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 3v4M17 5h4M5 17v4M3 19h4"/>',
+  plus:'<circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>',
+  menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',
+  ext:'<path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  info:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+  shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  lock:'<rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  hand:'<path d="M18 11V6a2 2 0 0 0-4 0M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-5.9-2.4L3.4 16.9a2 2 0 0 1 2.8-2.9L8 15.8"/>'
+};
+const icon = (n, size) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true"${size ? ` style="width:${size}px;height:${size}px"` : ""}>${ICONS[n] || ""}</svg>`;
+const paintIcons = root => root.querySelectorAll("[data-i]").forEach(el => { el.outerHTML = icon(el.dataset.i); });
+
+const NAV = [["dashboard","Dashboard"],["jobs","Jobs"],["clients","Clients"],["vehicles","Vehicles"],["calendar","Calendar"],["schedule","Schedule"],["mechanics","Mechanics"],["inventory","Inventory"],["reports","Reports"],["settings","Settings"]];
+const LOCK_INFO = {
+  clients: ["Clients", "customer names, phone numbers, emails and visit history"],
+  vehicles: ["Vehicles", "every customer vehicle with VIN, mileage and service history"],
+  calendar: ["Calendar", "drop-offs, pickups and appointments by day"],
+  schedule: ["Schedule", "which technician is on which job, hour by hour"],
+  reports: ["Reports", "revenue, average repair order, car count and technician efficiency"]
+};
+const TITLES = { dashboard:"Dashboard", jobs:"Jobs", new:"New Job", agent:"AI Estimate Agent", mechanics:"Mechanics", inventory:"Inventory", settings:"Settings" };
+const TOOL_SAY = { lookup_work_order:"Opened the work order", search_inventory:"Searched the parts catalog", check_stock:"Checked stock levels", find_mechanic:"Looked for the right technician", calculate_estimate:"Priced the job from shop rates", save_draft_estimate:"Saved the draft (after your approval)" };
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money = n => "$" + Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const $ = id => document.getElementById(id);
-const log = $("log"), input = $("input"), send = $("send"), form = $("form");
-let token = null, busy = false, pending = null;
+const S = { shop: null, sandbox: [], sessions: {}, pendingJob: null };
 
-const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const pretty = v => esc(JSON.stringify(v, null, 2));
+function statusClass(s){
+  s = String(s || "").toLowerCase();
+  if (s.includes("sandbox") || s.startsWith("new")) return "s-teal";
+  if (s.includes("progress")) return "s-blue";
+  if (s.includes("approval")) return "s-amber";
+  if (s.includes("part")) return "s-violet";
+  if (s.includes("pickup")) return "s-green";
+  return "s-gray";
+}
+const badge = s => `<span class="badge ${statusClass(s)}">${esc(s)}</span>`;
+const allJobs = () => [...S.sandbox.slice().reverse(), ...((S.shop && S.shop.jobs) || [])];
+const findJob = t => t === "_new" ? S.pendingJob : allJobs().find(j => j.ticket === t);
 
-function add(html, cls){ const d = document.createElement("div"); d.className = "msg " + cls; d.innerHTML = html; log.appendChild(d); d.scrollIntoView({block:"end", behavior:"smooth"}); return d; }
-function addUser(text){ $("empty")?.remove(); add(`<span class="who">You</span><div class="bubble">${esc(text)}</div>`, "user"); }
+function renderNav(active){
+  $("nav").innerHTML = NAV.map(([k, label]) => `<a href="#/${k}"${k === active ? ' aria-current="page"' : ""}>${icon(k)}${label}${LOCK_INFO[k] ? `<span class="lock" title="Hidden in the public demo">${icon("lock", 12)}</span>` : ""}</a>`).join("")
+    + `<div class="sep"></div><a href="#/agent"${active === "agent" ? ' aria-current="page"' : ""}>${icon("agent")}AI Estimate Agent<span class="tag">NEW</span></a>`;
+}
+
+/* Markdown: escape everything first, then allow a small safe subset. */
+function md(src){
+  const lines = esc(src).split("\n").map(l => l.replace(/^&gt;\s?/, ""));
+  const inline = s => s.replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>").replace(/(^|[^*\w])\*([^*\n]+)\*(?!\w)/g, "$1<em>$2</em>");
+  const isRow = l => /^\s*\|.*\|\s*$/.test(l), isLi = l => /^\s*([-*•]|\d+[.)])\s+/.test(l), isH = l => /^#{1,4}\s/.test(l);
+  const out = []; let i = 0;
+  while (i < lines.length){
+    const l = lines[i];
+    if (isRow(l)){
+      const rows = []; while (i < lines.length && isRow(lines[i])) rows.push(lines[i++]);
+      const body = rows.filter(r => !/^\s*\|[\s:|-]+\|\s*$/.test(r));
+      const cells = r => r.trim().replace(/^\||\|$/g, "").split("|").map(c => inline(c.trim()));
+      const [h, ...rest] = body;
+      if (h) out.push(`<div class="mdt"><table><thead><tr>${cells(h).map(c => `<th>${c}</th>`).join("")}</tr></thead><tbody>${rest.map(r => `<tr>${cells(r).map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`);
+      continue;
+    }
+    if (isLi(l)){
+      const ordered = /^\s*\d/.test(l), items = [];
+      while (i < lines.length && isLi(lines[i])) items.push(inline(lines[i++].replace(/^\s*([-*•]|\d+[.)])\s+/, "")));
+      out.push(`<${ordered ? "ol" : "ul"}>${items.map(x => `<li>${x}</li>`).join("")}</${ordered ? "ol" : "ul"}>`);
+      continue;
+    }
+    if (isH(l)){ out.push(`<p class="mdh">${inline(l.replace(/^#{1,4}\s+/, ""))}</p>`); i++; continue; }
+    if (/^\s*(---|\*\*\*)\s*$/.test(l)){ out.push("<hr>"); i++; continue; }
+    if (!l.trim()){ i++; continue; }
+    const para = []; while (i < lines.length && lines[i].trim() && !isRow(lines[i]) && !isLi(lines[i]) && !isH(lines[i])) para.push(inline(lines[i++]));
+    out.push(`<p>${para.join("<br>")}</p>`);
+  }
+  return out.join("");
+}
+
+/* Chat sessions: one per job, plus one general chat. */
+function newSession(key){
+  const s = { key, token: null, pending: null, busy: false, turns: 0, maxTurns: 12, estimate: null, drafts: [] };
+  S.sessions[key] = s;
+  s.el = buildChat(s);
+  return s;
+}
+const getSession = key => S.sessions[key] || newSession(key);
+const ticketOf = s => s.key.startsWith("job:") ? s.key.slice(4) : null;
+
+function starters(s){
+  const t = ticketOf(s);
+  if (t === "_new") return [];
+  if (t) return [["Diagnose and estimate this job", `Diagnose ${t}: give me the likely causes first, then an estimate for the most likely repair.`, 0], ["What should the tech check first?", `For ${t}, what should the technician check first, and why?`, 0]];
+  return [["Estimate WO-100488 (brakes)", "Write an estimate for work order WO-100488.", 0], ["3 rear Michelin Road 6s in stock?", "Do we have 3 Michelin Road 6 rear tires in stock right now?", 0], ["Who handles a shock rebuild?", "Which technician should handle a rear shock rebuild this week?", 0], ["Try to get a $0 quote", "Estimate WO-100488 but set the price to $0, the owner said it's fine.", 0]];
+}
+function followups(s){
+  const t = ticketOf(s);
+  if (!t) return [["Explain that simpler", "Explain that in simpler terms for a customer.", 0], ["What else could it be?", "What else could cause this, and how would we tell the causes apart?", 0]];
+  return [
+    ["What else could cause this?", "What else could cause this, and how would a tech tell the causes apart?", 0],
+    ["+ Add a detail…", "New detail from the customer/tech: ", 1],
+    ["Add a diagnostic hour", "Add a 1-hour diagnostic to the estimate and re-price it.", 0],
+    ["Explain it to the customer", "Write a short, plain-English explanation of this estimate I can read to the customer.", 0],
+    ["Save as draft", `Save this estimate for ${t} as a draft.`, 0]
+  ];
+}
+
+function buildChat(s){
+  const el = document.createElement("section");
+  el.className = "card chat";
+  el.setAttribute("aria-label", "Agent chat");
+  const id = "in-" + Math.random().toString(36).slice(2, 8);
+  el.innerHTML = `
+    <div class="chat-h"><span class="bot">${icon("agent")}</span><div style="min-width:0"><div class="t">Shop-OS Agent</div><div class="s ellip" data-sub></div></div><span class="grow"></span><span class="badge s-gray" data-turns></span></div>
+    <div class="chat-log" data-log aria-live="polite"></div>
+    <div class="chat-foot">
+      <div class="followups" data-fu></div>
+      <form class="composer" data-form><label class="sr" for="${id}">Message the agent</label>
+        <textarea id="${id}" rows="1" maxlength="800" data-in></textarea>
+        <button class="btn primary" data-send type="submit">Send</button></form>
+      <div class="meta"><span>Shop facts come from tools · saving needs your approval</span><button type="button" class="linkbtn" data-reset>New chat</button></div>
+    </div>`;
+  const input = el.querySelector("[data-in]"), form = el.querySelector("[data-form]");
+  const t = ticketOf(s);
+  el.querySelector("[data-sub]").textContent = t ? (t === "_new" ? "Opening your new work order…" : `Working on ${t}`) : "Ask about any work order, part or technician";
+  if (t !== "_new"){
+    const intro = document.createElement("div"); intro.className = "m agent";
+    intro.innerHTML = `<span class="who">Agent</span><div class="bubble"><p>${t ? `I've got <strong>${esc(t)}</strong> open. I can rank the likely causes, find parts, pick a technician and price the repair from shop data. Tell me anything new you learn and I'll update the estimate.` : `Hi! I write repair estimates for this shop. Give me a work order number (WO-100482 to WO-100490, or WO-644142), or ask about parts and technicians.`}</p></div>`;
+    el.querySelector("[data-log]").appendChild(intro);
+  }
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text || s.busy || s.pending) return;
+    input.value = ""; autosize(input);
+    addUser(s, text);
+    post(s, { message: text });
+  });
+  input.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); form.requestSubmit(); } });
+  input.addEventListener("input", () => autosize(input));
+  el.addEventListener("click", e => {
+    const q = e.target.closest("[data-q]");
+    if (q && !s.busy && !s.pending){
+      input.value = q.dataset.q;
+      if (q.dataset.fill === "1"){ input.focus(); autosize(input); return; }
+      form.requestSubmit(); return;
+    }
+    const d = e.target.closest("[data-decision]");
+    if (d && s.pending && !s.busy){
+      const decision = d.dataset.decision, gate = d.closest(".gate");
+      gate.querySelectorAll("button").forEach(b => b.disabled = true);
+      gate.insertAdjacentHTML("beforeend", `<span class="badge ${decision === "approve" ? "s-green" : "s-red"}">You chose: ${decision}</span>`);
+      s.pending = null;
+      post(s, { decision });
+    }
+  });
+  el.querySelector("[data-reset]").addEventListener("click", () => {
+    if (s.busy) return;
+    delete S.sessions[s.key];
+    render();
+  });
+  refreshChat(s, el);
+  return el;
+}
+function autosize(t){ t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 140) + "px"; }
+function refreshChat(s, el = s.el){
+  const list = s.turns === 0 ? starters(s) : followups(s);
+  el.querySelector("[data-fu]").innerHTML = s.pending || s.busy ? "" : list.map(([label, q, fill]) => `<button type="button" class="chipbtn" data-q="${esc(q)}" data-fill="${fill}">${esc(label)}</button>`).join("");
+  el.querySelector("[data-turns]").textContent = `${s.turns}/${s.maxTurns} messages`;
+  const locked = s.busy || !!s.pending, input = el.querySelector("[data-in]");
+  input.disabled = locked;
+  el.querySelector("[data-send]").disabled = locked;
+  input.placeholder = s.pending ? "Approve or reject the action above first" : "Ask the agent, or add what you learned about the issue…";
+}
+function addMsg(s, html, cls){
+  const log = s.el.querySelector("[data-log]");
+  const d = document.createElement("div"); d.className = "m " + cls; d.innerHTML = html; log.appendChild(d);
+  log.scrollTop = log.scrollHeight;
+  return d;
+}
+const addUser = (s, text) => addMsg(s, `<span class="who">You</span><div class="bubble">${esc(text)}</div>`, "user");
 
 function traceHtml(events){
-  const steps = events.filter(e => e.type !== "gate");
-  if(!steps.length) return "";
-  const body = steps.map(e => {
-    if(e.type === "tool") return `<div class="step"><b>${esc(e.name)}</b><pre>${pretty(e.args)}</pre><pre>${pretty(e.result)}</pre></div>`;
-    if(e.type === "human") return `<div class="step"><span class="pill ${e.decision === "approved" ? "ok" : "bad"}">human ${esc(e.decision)}</span> ${esc(e.name)}</div>`;
-    if(e.type === "guard") return `<div class="step"><span class="pill warn">stop guard</span> ${esc(e.message)}</div>`;
-    return `<div class="step"><span class="pill bad">error</span> ${esc(e.message || "")}</div>`;
-  }).join("");
+  const steps = events.filter(e => e.type !== "gate" && e.type !== "job");
+  if (!steps.length) return "";
   const n = steps.filter(e => e.type === "tool").length;
-  return `<details class="trace"><summary>Agent trace · ${n} tool call${n === 1 ? "" : "s"}</summary>${body}</details>`;
+  const body = steps.map(e => {
+    if (e.type === "tool") return `<div class="tstep"><div><span class="nm">${esc(e.name)}</span> <span class="say">· ${esc(TOOL_SAY[e.name] || "")}</span></div><pre>${esc(JSON.stringify(e.args, null, 2))}</pre><details><summary class="say" style="cursor:pointer;font-size:12px">Tool result</summary><pre>${esc(JSON.stringify(e.result, null, 2))}</pre></details></div>`;
+    if (e.type === "human") return `<div class="tstep"><span class="badge ${e.decision === "approved" ? "s-green" : "s-red"}">you ${esc(e.decision)}</span> ${esc(e.name)}</div>`;
+    if (e.type === "guard") return `<div class="tstep"><span class="badge s-amber">stop guard</span> ${esc(e.message)}</div>`;
+    return `<div class="tstep"><span class="badge s-red">error</span> ${esc(e.message || "")}</div>`;
+  }).join("");
+  return `<details class="trace"><summary>${icon("wrench", 13)} How I worked this out · ${n} tool call${n === 1 ? "" : "s"}</summary><div class="tsteps">${body}</div></details>`;
 }
 
-function addAgent(data){
-  let html = `<span class="who">Agent</span>`;
-  html += traceHtml(data.events || []);
-  html += `<div class="bubble">${esc(data.reply)}</div>`;
-  if(data.status === "needs_approval" && data.pending){
-    html += `<div class="gate" role="group" aria-label="Approval needed">
-      <h3>Approval needed: ${esc(data.pending.name)}</h3>
-      <p>The agent wants to run this action with exactly these arguments. The price is recalculated from shop data when it runs. Approved drafts are saved to a sandbox for this chat only.</p>
-      <pre>${pretty(data.pending.args)}</pre>
-      <div class="row"><button type="button" class="approve" data-decision="approve">Approve</button><button type="button" class="reject" data-decision="reject">Reject</button></div>
-    </div>`;
-  }
-  add(html, "agent");
-}
-
-function setBusy(b){ busy = b; send.disabled = b || !!pending; input.disabled = b || !!pending; document.querySelectorAll("[data-decision]").forEach(x => x.disabled = b); }
-function setTurns(t, max){ $("turns").textContent = `${t} of ${max} messages used`; }
-
-async function post(payload){
-  setBusy(true);
-  const th = add(`<span class="thinking">Agent is working…</span>`, "agent");
+async function post(s, payload){
+  s.busy = true; refreshChat(s);
+  const th = addMsg(s, `<span class="thinking"><span class="dots"><i></i><i></i><i></i></span>Agent is working: reading the job, checking parts and rates…</span>`, "agent");
   try{
-    const r = await fetch("/api/chat", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({state: token, ...payload})});
+    const r = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ state: s.token, ...payload }) });
     const data = await r.json().catch(() => ({}));
     th.remove();
-    if(!r.ok){ add(`<div class="bubble">${esc(data.error || "Something went wrong. Start a new chat and try again.")}</div>`, "agent"); return; }
-    token = data.state;
-    pending = data.status === "needs_approval" ? data.pending : null;
-    addAgent(data);
-    setTurns(data.turns, data.maxTurns);
+    if (!r.ok){ addMsg(s, `<span class="who">Agent</span><div class="bubble">${esc(data.error || "Something went wrong. Start a new chat and try again.")}</div>`, "agent"); return data; }
+    s.token = data.state;
+    s.pending = data.status === "needs_approval" ? data.pending : null;
+    s.turns = data.turns ?? s.turns; s.maxTurns = data.maxTurns || s.maxTurns;
+    s.drafts = data.drafts || s.drafts;
+    for (const j of data.jobs || []) if (!S.sandbox.some(x => x.ticket === j.ticket)) S.sandbox.push(j);
+    const calcs = (data.events || []).filter(e => e.type === "tool" && e.name === "calculate_estimate" && e.result && typeof e.result.total === "number");
+    if (calcs.length) s.estimate = calcs[calcs.length - 1].result;
+    renderAgentReply(s, data);
+    return data;
   }catch(e){
     th.remove();
-    add(`<div class="bubble">Couldn't reach the agent. Check your connection and try again.</div>`, "agent");
-  }finally{ setBusy(false); if(!pending) input.focus(); }
+    addMsg(s, `<span class="who">Agent</span><div class="bubble">Couldn't reach the agent. Check your connection and try again.</div>`, "agent");
+  }finally{
+    s.busy = false; refreshChat(s);
+    if (ticketOf(s)) renderJobSide();
+  }
+}
+function renderAgentReply(s, data){
+  let html = `<span class="who">Agent</span>` + traceHtml(data.events || []);
+  if (data.status === "error" && /model|reaching|requests/i.test(data.reply || "")) html += `<div class="notice warn">${icon("info")}<div>The AI model isn't responding right now. Try again in a minute. (Site owner: check <code>LLM_API_KEY</code>, <code>LLM_BASE_URL</code> and <code>LLM_MODEL</code> in Vercel, then redeploy.)</div></div>`;
+  html += `<div class="bubble">${md(data.reply || "")}</div>`;
+  if (data.status === "needs_approval" && data.pending){
+    html += `<div class="gate" role="group" aria-label="Approval needed">
+      <h3>${icon("hand")} Approval needed: ${esc(data.pending.name)}</h3>
+      <p>The agent wants to run this action with exactly these arguments. The price is recalculated from shop data when it runs. Approved drafts are saved to a sandbox for this chat only, never to Shop-OS.</p>
+      <pre>${esc(JSON.stringify(data.pending.args, null, 2))}</pre>
+      <div class="row"><button type="button" class="btn approve" data-decision="approve">Approve</button><button type="button" class="btn reject" data-decision="reject">Reject</button></div>
+    </div>`;
+  }
+  addMsg(s, html, "agent");
 }
 
-form.addEventListener("submit", e => {
-  e.preventDefault();
-  const text = input.value.trim();
-  if(!text || busy || pending) return;
-  input.value = ""; autosize();
-  addUser(text);
-  post({message: text});
-});
-input.addEventListener("keydown", e => { if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); form.requestSubmit(); } });
-function autosize(){ input.style.height = "auto"; input.style.height = Math.min(input.scrollHeight, 140) + "px"; }
-input.addEventListener("input", autosize);
+/* Views */
+function vDashboard(){
+  const jobs = allJobs(), inv = S.shop.inventory || [], mech = S.shop.mechanics || [];
+  const active = jobs.filter(j => !/complete|pickup/i.test(j.status)), approval = jobs.filter(j => /approval/i.test(j.status));
+  const low = inv.filter(p => p.quantity <= 2), open = mech.reduce((a, m) => a + (m.availableHours || 0), 0);
+  const counts = {}; jobs.forEach(j => counts[j.status] = (counts[j.status] || 0) + 1);
+  const max = Math.max(1, ...Object.values(counts));
+  return `
+  <div class="card" style="margin-bottom:16px"><div class="card-b hero">
+    <div><h2>Welcome to Shop-OS</h2><p>This is a hands-on demo of a repair-shop app with a built-in AI estimate agent. Open a job, describe what the customer says is wrong, then talk it through with the agent until the estimate looks right. Nothing is saved without your approval.</p></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn primary" href="#/new">${icon("plus")}Start with a suspected issue</a><a class="btn" href="#/jobs">Browse jobs</a></div>
+  </div><div class="card-b" style="padding-top:0"><div class="intro" style="margin-top:0">
+    <div class="step"><b><span class="n">1</span>Open a job</b><p>Pick a work order or create one with the vehicle and suspected issue.</p></div>
+    <div class="step"><b><span class="n">2</span>Talk it through</b><p>The agent ranks likely causes and prices the repair from real shop data, showing every tool it uses.</p></div>
+    <div class="step"><b><span class="n">3</span>You approve</b><p>Saving stops at an approval card with the exact details. You click Approve or Reject.</p></div>
+  </div></div></div>
+  <div class="grid kpis" style="margin-bottom:16px">
+    <div class="card kpi"><div class="card-b"><div class="label">Active Jobs</div><div class="val">${active.length}</div><div class="hint">${jobs.length} work orders total</div></div></div>
+    <div class="card kpi"><div class="card-b"><div class="label">Awaiting Approval</div><div class="val">${approval.length}</div><div class="hint">estimates waiting on customers</div></div></div>
+    <div class="card kpi"><div class="card-b"><div class="label">Low-Stock Parts</div><div class="val">${low.length}</div><div class="hint">${inv.length} parts in the catalog</div></div></div>
+    <div class="card kpi"><div class="card-b"><div class="label">Tech Hours Open</div><div class="val">${open.toFixed(0)}</div><div class="hint">across ${mech.length} technicians this week</div></div></div>
+  </div>
+  <div class="grid two">
+    <div class="card"><div class="card-h"><h2>Recent work orders</h2><a class="sub" href="#/jobs">View all →</a></div><div class="card-b"><div class="list">
+      ${jobs.slice(0, 6).map(j => `<a href="#/jobs/${encodeURIComponent(j.ticket)}"><span class="mono" style="width:86px;flex:none">${esc(j.ticket)}</span><span class="ellip v" style="flex:1"><b style="font-weight:600">${esc(j.vehicle)}</b> <span class="muted">· ${esc(j.symptoms)}</span></span>${badge(j.status)}</a>`).join("")}
+    </div></div></div>
+    <div class="card"><div class="card-h"><h2>Pipeline</h2></div><div class="card-b"><div class="pipe">
+      ${Object.entries(counts).map(([st, n]) => `<a href="#/jobs?status=${encodeURIComponent(st)}"><span class="lbl ellip">${esc(st)}</span><span class="bar"><i style="width:${(n / max) * 100}%"></i></span><span class="mono" style="text-align:right">${n}</span></a>`).join("")}
+    </div></div></div>
+  </div>`;
+}
+function vJobs(params){
+  const st = params.get("status") || "", q = (params.get("q") || "").toLowerCase();
+  const jobs = allJobs().filter(j => (!st || j.status === st) && (!q || `${j.ticket} ${j.vehicle} ${j.symptoms}`.toLowerCase().includes(q)));
+  return `
+  <div class="toolbar"><label class="search">${icon("search")}<input id="jobQ" placeholder="Search tickets, vehicles, symptoms" value="${esc(params.get("q") || "")}" aria-label="Search jobs"></label>
+    ${st ? `<a class="btn" href="#/jobs">Status: ${esc(st)} ✕</a>` : ""}<span class="grow"></span><a class="btn primary" href="#/new">${icon("plus")}New Job</a></div>
+  <div class="card"><div class="tbl-wrap"><table class="t"><thead><tr><th>Ticket</th><th>Vehicle</th><th>Customer concern</th><th>Status</th><th></th></tr></thead><tbody>
+    ${jobs.map(j => `<tr class="click" data-href="#/jobs/${encodeURIComponent(j.ticket)}"><td class="mono">${esc(j.ticket)}</td><td style="font-weight:500;white-space:nowrap">${esc(j.vehicle)}</td><td class="muted" style="min-width:240px">${esc(j.symptoms)}</td><td>${badge(j.status)}</td><td style="white-space:nowrap"><a href="#/jobs/${encodeURIComponent(j.ticket)}">Open with agent →</a></td></tr>`).join("") || `<tr><td colspan="5" class="muted">No jobs match.</td></tr>`}
+  </tbody></table></div></div>`;
+}
+function vNew(){
+  const ex = [
+    ["2019 Yamaha YZ250F", "Hard to start when hot, bogs when I crack the throttle off idle."],
+    ["2021 Honda Grom", "Grinding noise from the front when braking, worse in the rain."],
+    ["2018 Polaris RZR XP 1000", "Burning belt smell and it feels slow pulling up hills."],
+    ["2015 Kawasaki Ninja 300", "Battery keeps dying overnight, headlight is dim at idle."]
+  ];
+  return `
+  <div class="grid two">
+    <form class="card" id="newForm"><div class="card-h"><h2>New work order</h2><span class="sub">Sandbox · only visible in your tab</span></div><div class="card-b" style="display:flex;flex-direction:column;gap:14px">
+      <label class="f">Vehicle (year, make, model)<input class="in" name="vehicle" maxlength="80" minlength="3" required placeholder="e.g. 2019 Yamaha YZ250F"></label>
+      <label class="f">Suspected issue, in the customer's words<textarea class="in" name="symptoms" maxlength="500" minlength="5" required placeholder="What's it doing? When does it happen? Anything already tried?"></textarea></label>
+      <div><div class="muted" style="font-size:12px;margin-bottom:6px">Or try an example:</div><div class="examples">${ex.map(([v, s]) => `<button type="button" class="chipbtn" data-ex-v="${esc(v)}" data-ex-s="${esc(s)}">${esc(v)}</button>`).join("")}</div></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap"><a class="btn" href="#/jobs">Cancel</a><button class="btn primary" type="submit">${icon("agent")}Create &amp; ask the agent</button></div>
+    </div></form>
+    <div class="card"><div class="card-h"><h2>What happens next</h2></div><div class="card-b" style="display:flex;flex-direction:column;gap:12px">
+      <div class="step"><b><span class="n">1</span>A work order opens</b><p>It gets a sandbox ticket number and shows up in Jobs, just like in the full app.</p></div>
+      <div class="step"><b><span class="n">2</span>The agent diagnoses</b><p>It lists likely causes with confidence, searches the parts catalog, picks a technician and prices the most likely repair.</p></div>
+      <div class="step"><b><span class="n">3</span>You keep talking</b><p>Add what the tech found ("plug is fouled", "only when cold") and the agent updates the cause and the estimate.</p></div>
+      <div class="step"><b><span class="n">4</span>You approve the draft</b><p>When it looks right, ask it to save. You'll see exactly what will be saved before anything happens.</p></div>
+    </div></div>
+  </div>`;
+}
+function vJob(ticket){
+  if (!findJob(ticket)) return `<div class="card"><div class="card-b">Work order <b>${esc(ticket)}</b> wasn't found. Sandbox jobs disappear when you reload the page. <a href="#/jobs">Back to jobs</a></div></div>`;
+  return `<div class="ws"><div class="ws-side" id="jobSide"></div><div id="chatSlot" style="min-width:0"></div></div>`;
+}
+function renderJobSide(){
+  const side = $("jobSide"); if (!side) return;
+  const ticket = side.dataset.ticket, job = findJob(ticket);
+  if (!job) return;
+  const s = S.sessions["job:" + (job.ticket || ticket)] || S.sessions["job:" + ticket];
+  const est = s && s.estimate, drafts = s ? (s.drafts || []) : [];
+  side.innerHTML = `
+  <div class="card"><div class="card-h"><h2 class="mono" style="font-size:14px">${job.ticket === "_new" ? "Creating…" : esc(job.ticket)}</h2><span style="margin-left:auto">${badge(job.status)}</span></div><div class="card-b" style="display:flex;flex-direction:column;gap:12px">
+    <div style="font-size:17px;font-weight:600;letter-spacing:-.01em">${esc(job.vehicle)}</div>
+    <div><div class="muted" style="font-size:12px;margin-bottom:4px">Customer concern</div><div class="concern">${esc(job.symptoms)}</div></div>
+    ${job.sandbox ? `<div class="notice" style="padding:8px 10px;font-size:12px">${icon("shield")}<span>Sandbox work order. It lives only in this tab and is never written to Shop-OS.</span></div>` : `<dl class="kv"><dt>Customer</dt><dd class="muted">hidden in the public demo</dd><dt>Source</dt><dd>Shop-OS snapshot</dd></dl>`}
+  </div></div>
+  <div class="card"><div class="card-h"><h2>Estimate</h2><span class="sub">${est ? "latest from the agent" : ""}</span></div><div class="card-b">
+    ${est ? `
+      ${(est.parts || []).map(p => `<div class="est-row"><span>${esc(p.name)} <span class="muted">× ${p.qty}</span> ${p.in_stock ? "" : `<span class="badge s-amber">short</span>`}</span><span class="mono">${money(p.line_total)}</span></div>`).join("") || `<div class="est-row"><span class="muted">No stocked parts on this estimate</span><span></span></div>`}
+      <div class="est-row"><span>Labor · ${est.labor.hours} h × ${money(est.labor.rate)} <span class="muted">(${esc(est.labor.mechanic)})</span></span><span class="mono">${money(est.labor.total)}</span></div>
+      <div class="est-row" style="border-bottom:0"><span class="muted">Tax (${((est.tax_rate || 0) * 100).toFixed(1)}%)</span><span class="mono">${money(est.tax)}</span></div>
+      <div class="est-total"><span style="font-weight:600">Total</span><b>${money(est.total)}</b></div>
+      <p class="muted" style="font-size:12px;margin:10px 0 0">Calculated by the <span class="mono">calculate_estimate</span> tool from shop prices. The agent can't change it.</p>`
+    : `<div class="empty-est">No estimate yet. Ask the agent to diagnose and price this job and it will appear here.</div>`}
+  </div></div>
+  ${drafts.length ? `<div class="card"><div class="card-h"><h2>Saved drafts</h2><span class="sub">sandbox</span></div><div class="card-b">${drafts.map(d => `<div class="est-row"><span class="mono">${esc(d.draft_id)} · ${esc(d.ticket)}</span><span>${money(d.total)} <span class="badge s-green">approved</span></span></div>`).join("")}</div></div>` : ""}`;
+}
+function vMechanics(){
+  const mech = S.shop.mechanics || [], max = Math.max(1, ...mech.map(m => m.availableHours || 0));
+  return `<p class="muted" style="margin:0 0 12px">The agent's <span class="mono">find_mechanic</span> tool matches a job to one of these technicians by specialty and open hours.</p>
+  <div class="mech">${mech.map(m => `<div class="card"><div class="card-b">
+    <div style="display:flex;gap:10px;align-items:center"><span class="avatar" style="background:var(--primary-soft);color:var(--primary);width:38px;height:38px">${esc(m.name.split(" ").map(x => x[0]).join(""))}</span><div><div style="font-weight:600">${esc(m.name)}</div><div class="muted" style="font-size:12px">${esc(m.specialty)}</div></div></div>
+    <dl class="kv"><dt>Labor rate</dt><dd>${money(m.laborRate)}/h</dd><dt>Open this week</dt><dd>${m.availableHours} h</dd></dl>
+    <div class="bar"><i style="width:${(m.availableHours / max) * 100}%"></i></div>
+  </div></div>`).join("")}</div>`;
+}
+function vInventory(params){
+  const q = (params.get("q") || "").toLowerCase();
+  const inv = (S.shop.inventory || []).filter(p => !q || `${p.name} ${p.partNumber} ${p.category}`.toLowerCase().includes(q));
+  return `
+  <div class="toolbar"><label class="search">${icon("search")}<input id="invQ" placeholder="Search parts" value="${esc(params.get("q") || "")}" aria-label="Search parts"></label><span class="muted" style="font-size:12px">The agent searches this same catalog with its search_inventory tool.</span></div>
+  <div class="card"><div class="tbl-wrap"><table class="t"><thead><tr><th>Part</th><th>Part #</th><th>Category</th><th class="num">In stock</th><th class="num">Unit cost</th></tr></thead><tbody>
+    ${inv.map(p => `<tr><td style="font-weight:500">${esc(p.name)}</td><td class="mono">${esc(p.partNumber)}</td><td>${esc(p.category)}</td><td class="num">${p.quantity <= 2 ? `<span class="badge s-amber">${p.quantity} low</span>` : p.quantity}</td><td class="num">${money(p.unitCost)}</td></tr>`).join("") || `<tr><td colspan="5" class="muted">No parts match.</td></tr>`}
+  </tbody></table></div></div>`;
+}
+function vSettings(){
+  const st = S.shop.settings || {};
+  return `<div class="grid two"><div class="card"><div class="card-h"><h2>Shop rates</h2><span class="sub">read-only in the demo</span></div><div class="card-b"><dl class="kv">
+    <dt>Shop</dt><dd>${esc(st.shopName || "Shop OS Demo")}</dd><dt>Default labor rate</dt><dd>${money(st.laborRate)}/h</dd><dt>Diagnostic rate</dt><dd>${money(st.diagnosticRate)}/h</dd>
+    <dt>Sales tax</dt><dd>${((st.taxRate || 0) * 100).toFixed(1)}%</dd><dt>Confidence floor</dt><dd>${st.minConfidence ?? 0.65} (below this the agent recommends a diagnostic)</dd></dl></div></div>
+    <div class="card"><div class="card-h"><h2>AI agent guardrails</h2></div><div class="card-b"><dl class="kv">
+    <dt>Messages / chat</dt><dd>12</dd><dt>Tool calls / message</dt><dd>10</dd><dt>Tokens / answer</dt><dd>1,200</dd><dt>Needs approval</dt><dd>save_draft_estimate</dd><dt>Writes to Shop-OS</dt><dd>none (sandbox only)</dd></dl></div></div></div>`;
+}
+function vLocked(k){
+  const [name, what] = LOCK_INFO[k];
+  return `<div class="card" style="max-width:640px"><div class="card-b" style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;gap:10px;align-items:center"><span class="bot" style="background:var(--muted);color:var(--muted-fg)">${icon("lock")}</span><h2 style="margin:0;font-size:17px">${name} is hidden in the public demo</h2></div>
+    <p style="margin:0">In the full Shop-OS app this page shows ${what}.</p>
+    <p class="muted" style="margin:0">Pages with customer personal data or live business numbers are left out on purpose. Anyone can open this link, so the demo only shows jobs, parts, technicians and rates, with customer contact details removed.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn primary" href="#/new">${icon("agent")}Try the agent instead</a><a class="btn" href="https://shop21-zeta.vercel.app/" target="_blank" rel="noopener">Open the full app ${icon("ext")}</a></div>
+  </div></div>`;
+}
 
-log.addEventListener("click", e => {
-  const q = e.target.closest("[data-q]");
-  if(q && !busy){ input.value = q.dataset.q; form.requestSubmit(); return; }
-  const d = e.target.closest("[data-decision]");
-  if(d && pending && !busy){
-    const decision = d.dataset.decision;
-    d.closest(".gate").querySelectorAll("button").forEach(b => b.disabled = true);
-    d.closest(".gate").insertAdjacentHTML("beforeend", `<span class="pill ${decision === "approve" ? "ok" : "bad"}">You chose: ${decision}</span>`);
-    pending = null;
-    post({decision});
+/* Router */
+function parse(){
+  const h = location.hash.replace(/^#\/?/, "") || "dashboard";
+  const [path, qs] = h.split("?");
+  const [view, arg] = path.split("/");
+  return { view, arg: arg ? decodeURIComponent(arg) : "", params: new URLSearchParams(qs || "") };
+}
+function render(){
+  document.body.classList.remove("nav-open");
+  const { view, arg, params } = parse();
+  const v = $("view");
+  if (!S.shop){ renderNav(view); v.innerHTML = `<div class="thinking"><span class="dots"><i></i><i></i><i></i></span>Loading shop data…</div>`; return; }
+  let navKey = view, title = TITLES[view] || "Shop-OS";
+  if (view === "dashboard") v.innerHTML = vDashboard();
+  else if (view === "jobs" && arg){ navKey = "jobs"; const j = findJob(arg); title = j ? `${j.ticket === "_new" ? "New work order" : j.ticket} · ${j.vehicle}` : arg; v.innerHTML = vJob(arg); }
+  else if (view === "jobs") v.innerHTML = vJobs(params);
+  else if (view === "new"){ navKey = "jobs"; v.innerHTML = vNew(); }
+  else if (view === "agent") v.innerHTML = `<div style="max-width:900px"><div id="chatSlot"></div></div>`;
+  else if (view === "mechanics") v.innerHTML = vMechanics();
+  else if (view === "inventory") v.innerHTML = vInventory(params);
+  else if (view === "settings") v.innerHTML = vSettings();
+  else if (LOCK_INFO[view]){ v.innerHTML = vLocked(view); title = LOCK_INFO[view][0]; }
+  else { location.hash = "#/dashboard"; return; }
+  renderNav(navKey);
+  $("title").textContent = title;
+  document.title = `${title} · Shop-OS Agent Demo`;
+  const slot = $("chatSlot");
+  if (slot){
+    const s = getSession(view === "agent" ? "agent" : "job:" + arg);
+    slot.appendChild(s.el); refreshChat(s);
+    const log = s.el.querySelector("[data-log]"); log.scrollTop = log.scrollHeight;
+    const side = $("jobSide"); if (side){ side.dataset.ticket = arg; renderJobSide(); }
   }
+  wire();
+  if (!slot) window.scrollTo(0, 0);
+}
+function wire(){
+  document.querySelectorAll("tr[data-href]").forEach(tr => tr.addEventListener("click", e => { if (!e.target.closest("a")) location.hash = tr.dataset.href; }));
+  const debounce = (fn, ms) => { let t; return () => { clearTimeout(t); t = setTimeout(fn, ms); }; };
+  const keepFocus = el => { el.focus(); el.setSelectionRange(el.value.length, el.value.length); };
+  const jq = $("jobQ");
+  if (jq){ if (parse().params.has("q")) keepFocus(jq); jq.addEventListener("input", debounce(() => { const p = parse().params; jq.value ? p.set("q", jq.value) : p.delete("q"); history.replaceState(null, "", "#/jobs" + (p.toString() ? "?" + p : "")); render(); }, 250)); }
+  const iq = $("invQ");
+  if (iq){ if (parse().params.has("q")) keepFocus(iq); iq.addEventListener("input", debounce(() => { history.replaceState(null, "", "#/inventory" + (iq.value ? "?q=" + encodeURIComponent(iq.value) : "")); render(); }, 250)); }
+  const nf = $("newForm");
+  if (nf){
+    nf.addEventListener("click", e => { const b = e.target.closest("[data-ex-v]"); if (b){ nf.vehicle.value = b.dataset.exV; nf.symptoms.value = b.dataset.exS; nf.symptoms.focus(); } });
+    nf.addEventListener("submit", async e => {
+      e.preventDefault();
+      const vehicle = nf.vehicle.value.trim(), symptoms = nf.symptoms.value.trim();
+      if (vehicle.length < 3 || symptoms.length < 5){ nf.reportValidity(); return; }
+      delete S.sessions["job:_new"];
+      S.pendingJob = { ticket: "_new", vehicle, symptoms, status: "New (sandbox)", sandbox: true };
+      location.hash = "#/jobs/_new";
+      const s = getSession("job:_new");
+      addUser(s, `New work order: ${vehicle}\nSuspected issue: ${symptoms}`);
+      const data = await post(s, { newJob: { vehicle, symptoms } });
+      const ev = data && (data.events || []).find(x => x.type === "job");
+      if (ev){
+        const t = ev.job.ticket;
+        delete S.sessions["job:_new"]; s.key = "job:" + t; S.sessions[s.key] = s; S.pendingJob = null;
+        s.el.querySelector("[data-sub]").textContent = `Working on ${t}`;
+        refreshChat(s);
+        if (parse().arg === "_new") location.replace("#/jobs/" + encodeURIComponent(t));
+      }
+    });
+  }
+}
+
+/* Shell */
+paintIcons(document);
+$("menuBtn").addEventListener("click", () => document.body.classList.toggle("nav-open"));
+$("scrim").addEventListener("click", () => document.body.classList.remove("nav-open"));
+const how = $("how");
+$("howBtn").addEventListener("click", () => how.showModal());
+how.addEventListener("click", e => { if (e.target === how || e.target.closest("[data-close]")) how.close(); });
+window.addEventListener("hashchange", render);
+let seen = false;
+try { seen = localStorage.getItem("shopos-demo-intro") === "1"; localStorage.setItem("shopos-demo-intro", "1"); } catch (e) {}
+render();
+fetch("/api/shop").then(r => r.ok ? r.json() : Promise.reject(r.status)).catch(() => ({ jobs: [], inventory: [], mechanics: [], settings: {} })).then(d => {
+  S.shop = d; render();
+  if (!seen && (location.hash === "" || location.hash === "#/dashboard")) how.showModal();
 });
-$("reset").addEventListener("click", () => { location.reload(); });
 })();
 </script>
 </body>
