@@ -1,5 +1,7 @@
 # Shop-OS Estimate Agent (Milestone II)
 
+**Live demo:** https://shop-os-class.vercel.app · **Code:** https://github.com/wmicah951-rgb/shop-os-class-
+
 A public chat agent for Shop-OS, my powersports shop management app (https://shop21-zeta.vercel.app). It turns repair requests and work orders into priced draft estimates using tools over the shop's data, and asks a human before it saves anything.
 
 ## What changed since Milestone I
