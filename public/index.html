@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Shop-OS Agent Demo</title>
-<meta name="description" content="Try the Shop-OS repair-shop app and its AI estimate agent: open a work order, describe a suspected issue, and talk it through with the agent. Nothing saves without your approval.">
+<meta name="description" content="Try the Shop-OS repair-shop app and its AI estimate agent end to end: open a work order, talk the problem through with the agent, send the estimate for customer approval, then invoice and record payment. Sandbox only.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -16,7 +16,7 @@
   --sidebar:hsl(215 74% 15%); --sidebar-accent:hsl(215 62% 25%); --sidebar-border:hsl(215 62% 20%);
   --ok:#15803d; --ok-soft:#dcfce7; --warn:#b45309; --warn-soft:#fef3c7; --bad:#dc2626; --bad-soft:#fee2e2;
   --violet:#6d28d9; --violet-soft:#ede9fe; --teal:#0f766e; --teal-soft:#ccfbf1; --gray:#475569; --gray-soft:#f1f5f9;
-  --radius:.5rem; --shadow:0 1px 2px rgba(0,0,0,.04),0 1px 3px rgba(0,0,0,.03);
+  --shadow:0 1px 2px rgba(0,0,0,.04),0 1px 3px rgba(0,0,0,.03);
   --font:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
   color-scheme:light;
 }
@@ -39,6 +39,7 @@ svg.i{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-widt
 .nav .sep{height:1px;background:var(--sidebar-border);margin:10px 4px}
 .nav .tag{margin-left:auto;font-size:10px;font-weight:600;letter-spacing:.04em;padding:1px 6px;border-radius:999px;background:var(--primary);color:#fff}
 .nav .lock{margin-left:auto;display:inline-flex;color:rgba(255,255,255,.35)}
+.nav .count{margin-left:auto;font-size:11px;font-weight:600;padding:0 7px;border-radius:999px;background:rgba(255,255,255,.12);color:#fff}
 .side-foot{padding:12px 12px 16px;border-top:1px solid var(--sidebar-border);display:flex;flex-direction:column;gap:8px;flex:none}
 .btn-new{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--primary);color:#fff;border:0;border-radius:6px;padding:10px 16px;font-weight:600;font-size:14px;text-decoration:none}
 .btn-new:hover{background:var(--primary-hover)}
@@ -54,32 +55,38 @@ svg.i{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-widt
 .menu-btn{display:none;border:1px solid var(--border);background:var(--card);border-radius:6px;padding:8px;color:var(--fg)}
 .pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;padding:3px 10px;border-radius:999px;white-space:nowrap}
 .pill.demo{background:var(--teal-soft);color:var(--teal)}
-.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);border-radius:6px;padding:7px 12px;font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--border);background:var(--card);color:var(--fg);border-radius:6px;padding:7px 12px;font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap}
 .btn:hover{background:var(--muted)}
 .btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
 .btn.primary:hover{background:var(--primary-hover)}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.danger{border-color:var(--bad);color:var(--bad)}
+.btn.lg{padding:10px 16px;font-size:14px}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-.content{padding:24px;flex:1;width:100%;max-width:1320px;outline:0}
+.iconbtn{border:1px solid transparent;background:none;color:var(--muted-fg);border-radius:6px;padding:4px 7px;line-height:1}
+.iconbtn:hover{border-color:var(--border);color:var(--bad)}
+.content{padding:24px;flex:1;width:100%;max-width:1400px;outline:0}
 .card{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);min-width:0}
-.card-h{padding:16px 20px 0;display:flex;align-items:center;gap:8px}
+.card-h{padding:16px 20px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .card-h h2{font-size:15px;font-weight:600;margin:0}
 .card-h .sub{color:var(--muted-fg);font-size:12px;margin-left:auto;text-decoration:none}
 a.sub:hover{color:var(--primary)}
 .card-b{padding:16px 20px 20px}
 .muted{color:var(--muted-fg)}
 .mono{font-family:var(--mono);font-size:12px}
+.small{font-size:12px}
 .grid{display:grid;gap:16px}
 .kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
 .kpi .label{font-size:13px;color:var(--muted-fg);font-weight:500}
 .kpi .val{font-size:28px;font-weight:700;letter-spacing:-.02em;margin-top:4px;font-variant-numeric:tabular-nums}
 .kpi .hint{font-size:12px;color:var(--muted-fg)}
 .two{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
-.badge{display:inline-flex;align-items:center;font-size:12px;font-weight:500;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;padding:2px 8px;border-radius:999px;white-space:nowrap}
 .s-blue{background:var(--primary-soft);color:hsl(217 80% 40%)} .s-amber{background:var(--warn-soft);color:var(--warn)}
 .s-violet{background:var(--violet-soft);color:var(--violet)} .s-green{background:var(--ok-soft);color:var(--ok)}
 .s-gray{background:var(--gray-soft);color:var(--gray)} .s-teal{background:var(--teal-soft);color:var(--teal)} .s-red{background:var(--bad-soft);color:var(--bad)}
 
-.intro{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
+.intro{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:12px}
 .step{border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--bg)}
 .step b{display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:4px}
 .step .n{width:22px;height:22px;border-radius:999px;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
@@ -110,25 +117,71 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .ellip{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 
 label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500}
-.in{font:inherit;font-weight:400;color:var(--fg);background:var(--card);border:1px solid var(--border);border-radius:6px;padding:9px 11px;width:100%}
-textarea.in{resize:vertical;min-height:110px}
+.in{font:inherit;font-weight:400;color:var(--fg);background:var(--card);border:1px solid var(--border);border-radius:6px;padding:8px 10px;width:100%;min-width:0}
+textarea.in{resize:vertical;min-height:90px}
+input.qty{width:68px;text-align:right;padding:5px 8px}
 .examples{display:flex;flex-wrap:wrap;gap:6px}
 .chipbtn{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:5px 11px;font-size:12.5px;color:var(--fg)}
 .chipbtn:hover{border-color:var(--primary);color:var(--primary)}
 
-/* Job workspace */
-.ws{display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);gap:16px;align-items:start}
-.ws-side{display:flex;flex-direction:column;gap:16px;min-width:0}
-.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px;margin:0}
-.kv dt{color:var(--muted-fg)} .kv dd{margin:0}
+/* Ticket */
+.thead{display:flex;flex-direction:column;gap:14px}
+.thead-top{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.thead-top .title{font-size:19px;font-weight:600;letter-spacing:-.01em}
+.thead-top .next{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .concern{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px}
-.est-row{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:6px 0;border-bottom:1px dashed var(--border)}
-.est-total{display:flex;justify-content:space-between;align-items:baseline;margin-top:10px;padding-top:10px;border-top:2px solid var(--fg)}
-.est-total b{font-size:22px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.empty-est{border:1px dashed var(--border);border-radius:8px;padding:16px;text-align:center;color:var(--muted-fg);font-size:13px}
+.stepper{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.stp{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted-fg);font-weight:500;min-width:0}
+.stp i{display:block;height:6px;border-radius:999px;background:var(--muted)}
+.stp.done i{background:var(--ok)} .stp.done{color:var(--ok)}
+.stp.cur i{background:var(--primary)} .stp.cur{color:var(--fg);font-weight:600}
+.stp.bad i{background:var(--bad)} .stp.bad{color:var(--bad)}
+.ws2{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start;margin-top:16px}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);padding:0 12px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+.tabs a{padding:12px 12px 10px;font-size:13px;font-weight:500;color:var(--muted-fg);text-decoration:none;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;display:inline-flex;gap:6px;align-items:center}
+.tabs a:hover{color:var(--fg)}
+.tabs a[aria-current="page"]{color:var(--primary);border-bottom-color:var(--primary)}
+.tabs .dot{width:7px;height:7px;border-radius:99px;background:var(--warn)}
+.panel{padding:16px 20px 20px;display:flex;flex-direction:column;gap:14px}
+.banner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border:1px solid hsl(214 80% 85%);background:var(--primary-soft);border-radius:10px;padding:10px 12px;font-size:13px}
+.banner.warn{border-color:#fcd34d;background:#fffbeb}
+.banner.bad{border-color:#fca5a5;background:#fef2f2}
+.banner.ok{border-color:#86efac;background:#f0fdf4}
+.banner .grow{min-width:8px}
+.addrow{display:grid;grid-template-columns:minmax(0,1fr) 80px auto;gap:8px;align-items:center}
+.labor{display:grid;grid-template-columns:120px minmax(0,1fr);gap:10px}
+.totals{border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;gap:4px;font-size:13px}
+.totals .r{display:flex;justify-content:space-between;gap:10px}
+.totals .grand{border-top:2px solid var(--fg);margin-top:6px;padding-top:8px;font-size:15px;font-weight:600}
+.totals .grand b{font-size:22px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.lockbox{border:1px dashed var(--border);border-radius:10px;padding:18px;text-align:center;color:var(--muted-fg);font-size:13px;display:flex;flex-direction:column;gap:10px;align-items:center}
+.portal{max-width:420px;margin:0 auto;border:1px solid var(--border);border-radius:22px;padding:14px;background:linear-gradient(180deg,#f8fafc,#fff);box-shadow:0 10px 30px rgba(15,31,61,.08);width:100%}
+.portal .bar-top{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted-fg);padding:0 4px 10px}
+.portal .shop{display:flex;gap:8px;align-items:center;font-weight:700}
+.portal .shop .mark{width:26px;height:26px;border-radius:7px;background:var(--primary);color:#fff;display:grid;place-items:center}
+.portal .box{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.portal .line{display:flex;justify-content:space-between;gap:10px;font-size:13px}
+.portal .tot{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--border);padding-top:8px}
+.portal .tot b{font-size:22px}
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl{display:grid;grid-template-columns:110px 1fr;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.tl:last-child{border-bottom:0}
+.tl .when{color:var(--muted-fg);font-size:12px}
+/* Invoice document */
+.invoice{border:1px solid var(--border);border-radius:10px;padding:22px;background:#fff;position:relative;display:flex;flex-direction:column;gap:16px;overflow:hidden}
+.inv-head{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.inv-logo{display:flex;gap:8px;align-items:center;font-weight:700;font-size:18px}
+.inv-logo .mark{width:30px;height:30px;border-radius:8px;background:var(--primary);color:#fff;display:grid;place-items:center}
+.inv-meta{text-align:right;font-size:13px}
+.inv-meta h3{margin:0 0 4px;font-size:22px;letter-spacing:.08em;color:var(--muted-fg)}
+.inv-to{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;font-size:13px}
+.inv-to b{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted-fg);font-weight:600;margin-bottom:2px}
+.stamp{position:absolute;right:28px;top:96px;transform:rotate(-12deg);border:3px solid var(--ok);color:var(--ok);font-weight:800;font-size:28px;letter-spacing:.12em;padding:2px 14px;border-radius:8px;opacity:.85}
+.payrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.payrow select{width:auto}
 
 /* Chat */
-.chat{display:flex;flex-direction:column;height:calc(100vh - 64px - 48px);min-height:520px}
+.chat{display:flex;flex-direction:column;height:calc(100vh - 64px - 48px);min-height:540px;position:sticky;top:80px}
 .chat-h{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}
 .bot{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--primary),hsl(250 80% 60%));color:#fff;display:grid;place-items:center;flex:none}
 .chat-h .t{font-weight:600;font-size:14px;line-height:1.2}
@@ -162,8 +215,6 @@ pre{font-family:var(--mono);font-size:11.5px;background:var(--bg);border:1px sol
 .gate h3{margin:0;font-size:15px;display:flex;align-items:center;gap:8px}
 .gate p{margin:0;font-size:13px}
 .gate .row{display:flex;gap:8px;flex-wrap:wrap}
-.btn.approve{background:var(--ok);border-color:var(--ok);color:#fff}
-.btn.reject{border-color:var(--bad);color:var(--bad)}
 .thinking{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted-fg)}
 .dots{display:inline-flex;gap:3px}.dots i{width:6px;height:6px;border-radius:99px;background:var(--primary);opacity:.3;animation:b 1s infinite}.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
 @keyframes b{50%{opacity:1}}
@@ -179,7 +230,9 @@ pre{font-family:var(--mono);font-size:11.5px;background:var(--bg);border:1px sol
 .notice.warn{border-color:#fcd34d;background:#fffbeb}
 .mech{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
 .mech .card-b{display:flex;flex-direction:column;gap:10px}
-dialog{border:0;border-radius:14px;padding:0;max-width:min(720px,calc(100vw - 32px));width:100%;max-height:calc(100vh - 32px);overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);color:var(--fg)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px;margin:0}
+.kv dt{color:var(--muted-fg)} .kv dd{margin:0}
+dialog{border:0;border-radius:14px;padding:0;max-width:min(760px,calc(100vw - 32px));width:100%;max-height:calc(100vh - 32px);overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);color:var(--fg)}
 dialog::backdrop{background:rgba(15,31,61,.5)}
 .dlg-b{padding:22px}
 .dlg-b h2{margin:0 0 4px;font-size:20px}
@@ -187,14 +240,23 @@ dialog::backdrop{background:rgba(15,31,61,.5)}
 .facts div{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
 .sr{position:absolute;left:-9999px}
 .scrim{display:none}
-@media (max-width:1100px){.ws{grid-template-columns:1fr}.chat{height:auto;min-height:0}.chat-log{min-height:320px}.chat-foot{position:sticky;bottom:0}}
+@media (max-width:1200px){.ws2{grid-template-columns:1fr}.chat{height:auto;min-height:0;position:static}.chat-log{min-height:320px;max-height:70vh}.chat-foot{position:sticky;bottom:0}}
 @media (max-width:900px){
   .sidebar{transform:translateX(-100%)} body.nav-open .sidebar{transform:none}
   body.nav-open .scrim{display:block;position:fixed;inset:0;background:rgba(15,31,61,.4);z-index:35}
   .main{margin-left:0} .menu-btn{display:inline-flex}
-  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))} .two{grid-template-columns:1fr} .intro{grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))} .two{grid-template-columns:1fr}
   .content{padding:16px} .topbar{padding:0 16px} .hide-sm{display:none}
-  .facts{grid-template-columns:1fr}
+  .facts,.inv-to{grid-template-columns:1fr} .inv-meta{text-align:left}
+  .stepper{grid-template-columns:repeat(5,minmax(52px,1fr));overflow-x:auto}
+  .thead-top .next{margin-left:0;width:100%}
+  .labor{grid-template-columns:1fr}
+}
+@media print{
+  body *{visibility:hidden}
+  #invoiceDoc,#invoiceDoc *{visibility:visible}
+  #invoiceDoc{position:absolute;left:0;top:0;width:100%;border:0}
+  .sidebar,.topbar{display:none}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -225,16 +287,17 @@ dialog::backdrop{background:rgba(15,31,61,.5)}
   <div class="dlg-b">
     <span class="pill demo">Shop-OS · AI Estimate Agent</span>
     <h2 id="howTitle" style="margin-top:10px">What you're looking at</h2>
-    <p class="muted" style="margin:0">Shop-OS is a management app for motorcycle and powersports repair shops: work orders, parts, technicians and customers in one place. This public demo shows the shop side of the app with a built-in AI agent that writes repair estimates the way a service writer would. You stay in charge.</p>
+    <p class="muted" style="margin:0">Shop-OS is a management app for motorcycle and powersports repair shops. This public demo lets you run a repair job end to end, with a built-in AI agent that diagnoses the problem and writes the estimate. You stay in charge of every step that matters.</p>
     <div class="intro">
       <div class="step"><b><span class="n">1</span>Open a job</b><p>Pick a work order, or create one with the vehicle and the suspected issue in the customer's words.</p></div>
-      <div class="step"><b><span class="n">2</span>Talk it through</b><p>The agent ranks likely causes and prices the repair from the shop's real parts, rates and technicians. Every tool it uses is shown. Add details and it updates the estimate.</p></div>
-      <div class="step"><b><span class="n">3</span>You approve</b><p>Saving a draft stops at a yellow approval card showing exactly what will be saved. Nothing happens until you click Approve.</p></div>
+      <div class="step"><b><span class="n">2</span>Diagnose with the agent</b><p>It ranks likely causes and prices the repair from the shop's real parts, rates and technicians. Every tool call is shown.</p></div>
+      <div class="step"><b><span class="n">3</span>Customer approves</b><p>Edit the estimate, send it, then approve or decline it as the customer would in their portal.</p></div>
+      <div class="step"><b><span class="n">4</span>Invoice &amp; payment</b><p>Start the work, mark it complete, issue the invoice and record a simulated payment.</p></div>
     </div>
     <div class="facts">
-      <div><b>Real:</b> the parts catalog, stock, labor rates and technicians are a snapshot of the Shop-OS demo shop. Prices are calculated, never made up.</div>
-      <div><b>Sandbox:</b> jobs you create and drafts you approve exist only in this browser tab. Nothing is written to Shop-OS. Customer contact details are removed.</div>
-      <div><b>Can't:</b> send emails or texts, take payments, give discounts, change prices, or edit or delete records.</div>
+      <div><b>Real:</b> the parts catalog, stock, labor rates and technicians are a snapshot of the Shop-OS demo shop. Every price is calculated on the server from that data.</div>
+      <div><b>Sandbox:</b> new jobs, estimates, approvals, invoices and payments live only in this browser. Nothing is written to Shop-OS, no message is sent and no money moves.</div>
+      <div><b>The agent can't:</b> send emails or texts, take payments, give discounts, change prices, or approve its own actions.</div>
       <div><b>Limits:</b> 12 messages per chat, 10 tool calls per message. Accountable owner: Micah (project owner, CIS 4394).</div>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap">
@@ -250,6 +313,7 @@ dialog::backdrop{background:rgba(15,31,61,.5)}
 const ICONS = {
   dashboard:'<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
   jobs:'<path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/>',
+  invoices:'<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 17.5v-11"/>',
   clients:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
   vehicles:'<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>',
   calendar:'<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>',
@@ -267,12 +331,17 @@ const ICONS = {
   shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
   search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
   lock:'<rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
-  hand:'<path d="M18 11V6a2 2 0 0 0-4 0M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-5.9-2.4L3.4 16.9a2 2 0 0 1 2.8-2.9L8 15.8"/>'
+  hand:'<path d="M18 11V6a2 2 0 0 0-4 0M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-5.9-2.4L3.4 16.9a2 2 0 0 1 2.8-2.9L8 15.8"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  x:'<path d="M18 6 6 18M6 6l12 12"/>',
+  send:'<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+  print:'<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/>',
+  phone:'<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/>'
 };
 const icon = (n, size) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true"${size ? ` style="width:${size}px;height:${size}px"` : ""}>${ICONS[n] || ""}</svg>`;
 const paintIcons = root => root.querySelectorAll("[data-i]").forEach(el => { el.outerHTML = icon(el.dataset.i); });
 
-const NAV = [["dashboard","Dashboard"],["jobs","Jobs"],["clients","Clients"],["vehicles","Vehicles"],["calendar","Calendar"],["schedule","Schedule"],["mechanics","Mechanics"],["inventory","Inventory"],["reports","Reports"],["settings","Settings"]];
+const NAV = [["dashboard","Dashboard"],["jobs","Jobs"],["invoices","Invoices"],["clients","Clients"],["vehicles","Vehicles"],["calendar","Calendar"],["schedule","Schedule"],["mechanics","Mechanics"],["inventory","Inventory"],["reports","Reports"],["settings","Settings"]];
 const LOCK_INFO = {
   clients: ["Clients", "customer names, phone numbers, emails and visit history"],
   vehicles: ["Vehicles", "every customer vehicle with VIN, mileage and service history"],
@@ -280,21 +349,72 @@ const LOCK_INFO = {
   schedule: ["Schedule", "which technician is on which job, hour by hour"],
   reports: ["Reports", "revenue, average repair order, car count and technician efficiency"]
 };
-const TITLES = { dashboard:"Dashboard", jobs:"Jobs", new:"New Job", agent:"AI Estimate Agent", mechanics:"Mechanics", inventory:"Inventory", settings:"Settings" };
+const TITLES = { dashboard:"Dashboard", jobs:"Jobs", invoices:"Invoices", new:"New Job", agent:"AI Estimate Agent", mechanics:"Mechanics", inventory:"Inventory", settings:"Settings" };
 const TOOL_SAY = { lookup_work_order:"Opened the work order", search_inventory:"Searched the parts catalog", check_stock:"Checked stock levels", find_mechanic:"Looked for the right technician", calculate_estimate:"Priced the job from shop rates", save_draft_estimate:"Saved the draft (after your approval)" };
+const STAGE_LABEL = { draft:"Estimate Draft", sent:"Awaiting Approval", approved:"Approved", declined:"Declined", in_progress:"In Progress", complete:"Work Complete", invoiced:"Invoiced", paid:"Paid" };
+const STAGE_STEP = { draft:0, sent:1, declined:1, approved:2, in_progress:2, complete:3, invoiced:3, paid:5 };
+const STEPS = ["Estimate", "Customer approval", "Repair", "Invoice", "Paid"];
+const STORE_KEY = "shopos-demo-v2";
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const money = n => "$" + Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const when = ms => new Date(ms).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+const day = ms => new Date(ms).toLocaleDateString([], { year: "numeric", month: "short", day: "numeric" });
 const $ = id => document.getElementById(id);
-const S = { shop: null, sandbox: [], sessions: {}, pendingJob: null };
+const S = { shop: null, sandbox: [], sessions: {}, saved: {}, flow: {}, pendingJob: null };
+
+/* ── Persistence: per-viewer, this browser only ── */
+function loadStore(){
+  try {
+    const d = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+    if (d){ S.sandbox = d.sandbox || []; S.flow = d.flow || {}; S.saved = d.sessions || {}; }
+  } catch (e) {}
+}
+function persist(){
+  try {
+    const sessions = { ...S.saved };
+    for (const [k, s] of Object.entries(S.sessions)) if (s.token && k !== "job:_new") sessions[k] = { token: s.token, turns: s.turns, maxTurns: s.maxTurns, estimate: s.estimate, estimateArgs: s.estimateArgs, drafts: s.drafts };
+    localStorage.setItem(STORE_KEY, JSON.stringify({ sandbox: S.sandbox, flow: S.flow, sessions }));
+  } catch (e) {}
+}
+
+/* ── Job workflow ── */
+function getFlow(t){
+  return S.flow[t] || (S.flow[t] = { stage: "draft", touched: false, lines: { labor_hours: 0, mechanic_id: null, parts: [] }, priced: null, source: "", note: "", history: [], sent: null, decline: null, invoice: null });
+}
+function logEvent(t, who, what){ const f = getFlow(t); f.history.push({ at: Date.now(), who, what }); f.touched = true; persist(); }
+function jobStatus(j){ const f = S.flow[j.ticket]; return f && f.touched && (f.stage !== "draft" || f.lines.parts.length || f.lines.labor_hours > 0) ? STAGE_LABEL[f.stage] : j.status; }
+function setLines(f, args, source){
+  const inv = (S.shop && S.shop.inventory) || [];
+  f.lines = {
+    labor_hours: Math.min(40, Math.max(0, Number(args.labor_hours) || 0)),
+    mechanic_id: args.mechanic_id != null && args.mechanic_id !== "" ? Number(args.mechanic_id) : null,
+    parts: (args.parts || []).map(p => ({ part_id: Number(p.part_id), qty: Math.min(50, Math.max(1, Math.round(Number(p.qty) || 1))) })).filter(p => inv.some(x => x.id === p.part_id))
+  };
+  f.source = source; f.touched = true;
+}
+const hasLines = f => f.lines.parts.length > 0 || f.lines.labor_hours > 0;
+const editable = f => f.stage === "draft" || f.stage === "declined";
+async function reprice(t){
+  const f = getFlow(t);
+  if (!hasLines(f)){ f.priced = null; persist(); paintTotals(t); return; }
+  try {
+    const r = await fetch("/api/price", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(f.lines) });
+    if (r.ok) f.priced = await r.json();
+  } catch (e) {}
+  persist(); paintTotals(t); paintHead(t);
+}
+let repriceTimer = null;
+const repriceSoon = t => { clearTimeout(repriceTimer); repriceTimer = setTimeout(() => reprice(t), 300); };
 
 function statusClass(s){
   s = String(s || "").toLowerCase();
+  if (s.includes("declin")) return "s-red";
+  if (s === "paid" || s.includes("pickup") || s === "approved") return "s-green";
   if (s.includes("sandbox") || s.startsWith("new")) return "s-teal";
   if (s.includes("progress")) return "s-blue";
-  if (s.includes("approval")) return "s-amber";
-  if (s.includes("part")) return "s-violet";
-  if (s.includes("pickup")) return "s-green";
+  if (s.includes("awaiting") || s.includes("approval")) return "s-amber";
+  if (s.includes("invoic") || s.includes("part")) return "s-violet";
   return "s-gray";
 }
 const badge = s => `<span class="badge ${statusClass(s)}">${esc(s)}</span>`;
@@ -302,7 +422,8 @@ const allJobs = () => [...S.sandbox.slice().reverse(), ...((S.shop && S.shop.job
 const findJob = t => t === "_new" ? S.pendingJob : allJobs().find(j => j.ticket === t);
 
 function renderNav(active){
-  $("nav").innerHTML = NAV.map(([k, label]) => `<a href="#/${k}"${k === active ? ' aria-current="page"' : ""}>${icon(k)}${label}${LOCK_INFO[k] ? `<span class="lock" title="Hidden in the public demo">${icon("lock", 12)}</span>` : ""}</a>`).join("")
+  const invCount = Object.values(S.flow).filter(f => f.stage === "invoiced").length;
+  $("nav").innerHTML = NAV.map(([k, label]) => `<a href="#/${k}"${k === active ? ' aria-current="page"' : ""}>${icon(k)}${label}${LOCK_INFO[k] ? `<span class="lock" title="Hidden in the public demo">${icon("lock", 12)}</span>` : ""}${k === "invoices" && invCount ? `<span class="count" title="Unpaid invoices">${invCount}</span>` : ""}</a>`).join("")
     + `<div class="sep"></div><a href="#/agent"${active === "agent" ? ' aria-current="page"' : ""}>${icon("agent")}AI Estimate Agent<span class="tag">NEW</span></a>`;
 }
 
@@ -337,9 +458,10 @@ function md(src){
   return out.join("");
 }
 
-/* Chat sessions: one per job, plus one general chat. */
+/* ── Agent chat sessions: one per job, plus one general chat ── */
 function newSession(key){
-  const s = { key, token: null, pending: null, busy: false, turns: 0, maxTurns: 12, estimate: null, drafts: [] };
+  const s = { key, token: null, pending: null, busy: false, turns: 0, maxTurns: 12, estimate: null, estimateArgs: null, drafts: [] };
+  if (S.saved[key]){ Object.assign(s, S.saved[key]); s.restored = true; }
   S.sessions[key] = s;
   s.el = buildChat(s);
   return s;
@@ -360,7 +482,7 @@ function followups(s){
     ["What else could cause this?", "What else could cause this, and how would a tech tell the causes apart?", 0],
     ["+ Add a detail…", "New detail from the customer/tech: ", 1],
     ["Add a diagnostic hour", "Add a 1-hour diagnostic to the estimate and re-price it.", 0],
-    ["Explain it to the customer", "Write a short, plain-English explanation of this estimate I can read to the customer.", 0],
+    ["Explain it to the customer", "Write a short, plain-English explanation of this estimate I can send to the customer.", 0],
     ["Save as draft", `Save this estimate for ${t} as a draft.`, 0]
   ];
 }
@@ -383,10 +505,16 @@ function buildChat(s){
   const input = el.querySelector("[data-in]"), form = el.querySelector("[data-form]");
   const t = ticketOf(s);
   el.querySelector("[data-sub]").textContent = t ? (t === "_new" ? "Opening your new work order…" : `Working on ${t}`) : "Ask about any work order, part or technician";
+  const log = el.querySelector("[data-log]");
   if (t !== "_new"){
     const intro = document.createElement("div"); intro.className = "m agent";
-    intro.innerHTML = `<span class="who">Agent</span><div class="bubble"><p>${t ? `I've got <strong>${esc(t)}</strong> open. I can rank the likely causes, find parts, pick a technician and price the repair from shop data. Tell me anything new you learn and I'll update the estimate.` : `Hi! I write repair estimates for this shop. Give me a work order number (WO-100482 to WO-100490, or WO-644142), or ask about parts and technicians.`}</p></div>`;
-    el.querySelector("[data-log]").appendChild(intro);
+    intro.innerHTML = `<span class="who">Agent</span><div class="bubble"><p>${t ? `I've got <strong>${esc(t)}</strong> open. I can rank the likely causes, find parts, pick a technician and price the repair from shop data. My price fills in the <strong>Estimate</strong> tab, where you can adjust it and send it to the customer.` : `Hi! I write repair estimates for this shop. Give me a work order number (WO-100482 to WO-100490, or WO-644142), or ask about parts and technicians.`}</p></div>`;
+    log.appendChild(intro);
+  }
+  if (s.restored){
+    const n = document.createElement("div"); n.className = "m agent";
+    n.innerHTML = `<div class="notice">${icon("info")}<span>Conversation restored from this browser. Earlier messages aren't shown, but I still remember them.</span></div>`;
+    log.appendChild(n);
   }
   form.addEventListener("submit", e => {
     e.preventDefault();
@@ -416,7 +544,7 @@ function buildChat(s){
   });
   el.querySelector("[data-reset]").addEventListener("click", () => {
     if (s.busy) return;
-    delete S.sessions[s.key];
+    delete S.sessions[s.key]; delete S.saved[s.key]; persist();
     render();
   });
   refreshChat(s, el);
@@ -460,64 +588,101 @@ async function post(s, payload){
     const r = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ state: s.token, ...payload }) });
     const data = await r.json().catch(() => ({}));
     th.remove();
+    if (r.status === 400 && s.token){
+      s.token = null; s.turns = 0; s.pending = null; delete S.saved[s.key]; persist();
+      addMsg(s, `<div class="notice">${icon("info")}<span>That earlier conversation expired, so I started a fresh one. Send your message again.</span></div>`, "agent");
+      return data;
+    }
     if (!r.ok){ addMsg(s, `<span class="who">Agent</span><div class="bubble">${esc(data.error || "Something went wrong. Start a new chat and try again.")}</div>`, "agent"); return data; }
     s.token = data.state;
     s.pending = data.status === "needs_approval" ? data.pending : null;
     s.turns = data.turns ?? s.turns; s.maxTurns = data.maxTurns || s.maxTurns;
     s.drafts = data.drafts || s.drafts;
     for (const j of data.jobs || []) if (!S.sandbox.some(x => x.ticket === j.ticket)) S.sandbox.push(j);
-    const calcs = (data.events || []).filter(e => e.type === "tool" && e.name === "calculate_estimate" && e.result && typeof e.result.total === "number");
-    if (calcs.length) s.estimate = calcs[calcs.length - 1].result;
     renderAgentReply(s, data);
+    const t = ticketOf(s);
+    if (t && t !== "_new") agentToFlow(s, t, data.events || []);
+    else captureEstimate(s, data.events || []);
+    persist();
     return data;
   }catch(e){
     th.remove();
     addMsg(s, `<span class="who">Agent</span><div class="bubble">Couldn't reach the agent. Check your connection and try again.</div>`, "agent");
   }finally{
     s.busy = false; refreshChat(s);
-    if (ticketOf(s)) renderJobSide();
+    if (ticketOf(s)) refreshTicket();
+  }
+}
+function captureEstimate(s, events){
+  const calcs = events.filter(e => e.type === "tool" && e.name === "calculate_estimate" && e.result && typeof e.result.total === "number");
+  if (calcs.length){ const c = calcs[calcs.length - 1]; s.estimate = c.result; s.estimateArgs = c.args; return c; }
+  return null;
+}
+/* The agent's work flows into the ticket: its price fills an empty estimate, an approved draft replaces it. */
+function agentToFlow(s, t, events){
+  const f = getFlow(t);
+  const c = captureEstimate(s, events);
+  if (c && editable(f) && !hasLines(f)){
+    setLines(f, c.args, "agent"); f.priced = c.result;
+    logEvent(t, "Agent", `Diagnosed the job and priced it at ${money(c.result.total)}. Filled in the estimate.`);
+  } else if (c){
+    logEvent(t, "Agent", `Priced an option at ${money(c.result.total)} (not applied; use "Load agent's price" to apply it).`);
+  }
+  const saved = events.find(e => e.type === "tool" && e.name === "save_draft_estimate" && e.result && e.result.saved);
+  if (saved){
+    if (editable(f)){
+      setLines(f, saved.args, `agent draft ${saved.result.draft_id}`); reprice(t);
+      logEvent(t, "You", `Approved the agent's draft ${saved.result.draft_id} (${money(saved.result.total)}). Loaded into the estimate.`);
+    } else logEvent(t, "You", `Approved the agent's draft ${saved.result.draft_id}, but the estimate was already sent, so it wasn't applied.`);
   }
 }
 function renderAgentReply(s, data){
   let html = `<span class="who">Agent</span>` + traceHtml(data.events || []);
-  if (data.status === "error" && /model|reaching|requests/i.test(data.reply || "")) html += `<div class="notice warn">${icon("info")}<div>The AI model isn't responding right now. Try again in a minute. (Site owner: check <code>LLM_API_KEY</code>, <code>LLM_BASE_URL</code> and <code>LLM_MODEL</code> in Vercel, then redeploy.)</div></div>`;
+  if (data.status === "error" && /model|reaching|requests/i.test(data.reply || "")) html += `<div class="notice warn">${icon("info")}<div>The AI model isn't responding right now. Try again in a minute.</div></div>`;
   html += `<div class="bubble">${md(data.reply || "")}</div>`;
   if (data.status === "needs_approval" && data.pending){
     html += `<div class="gate" role="group" aria-label="Approval needed">
       <h3>${icon("hand")} Approval needed: ${esc(data.pending.name)}</h3>
-      <p>The agent wants to run this action with exactly these arguments. The price is recalculated from shop data when it runs. Approved drafts are saved to a sandbox for this chat only, never to Shop-OS.</p>
+      <p>The agent wants to run this action with exactly these arguments. The price is recalculated from shop data when it runs. If you approve, the draft replaces the estimate in this ticket (sandbox only).</p>
       <pre>${esc(JSON.stringify(data.pending.args, null, 2))}</pre>
-      <div class="row"><button type="button" class="btn approve" data-decision="approve">Approve</button><button type="button" class="btn reject" data-decision="reject">Reject</button></div>
+      <div class="row"><button type="button" class="btn ok" data-decision="approve">Approve</button><button type="button" class="btn danger" data-decision="reject">Reject</button></div>
     </div>`;
   }
   addMsg(s, html, "agent");
 }
 
-/* Views */
+/* ── Views ── */
+function money0(n){ return "$" + Math.round(n || 0).toLocaleString("en-US"); }
 function vDashboard(){
-  const jobs = allJobs(), inv = S.shop.inventory || [], mech = S.shop.mechanics || [];
-  const active = jobs.filter(j => !/complete|pickup/i.test(j.status)), approval = jobs.filter(j => /approval/i.test(j.status));
-  const low = inv.filter(p => p.quantity <= 2), open = mech.reduce((a, m) => a + (m.availableHours || 0), 0);
-  const counts = {}; jobs.forEach(j => counts[j.status] = (counts[j.status] || 0) + 1);
+  const jobs = allJobs(), inv = S.shop.inventory || [];
+  const statuses = jobs.map(jobStatus);
+  const active = statuses.filter(s => !/complete|pickup|paid|invoiced|declined/i.test(s)).length;
+  const awaiting = statuses.filter(s => /awaiting/i.test(s)).length;
+  const flows = Object.values(S.flow);
+  const outstanding = flows.filter(f => f.stage === "invoiced").reduce((a, f) => a + (f.invoice ? f.invoice.total : 0), 0);
+  const collected = flows.filter(f => f.stage === "paid").reduce((a, f) => a + (f.invoice ? f.invoice.total : 0), 0);
+  const counts = {}; statuses.forEach(s => counts[s] = (counts[s] || 0) + 1);
   const max = Math.max(1, ...Object.values(counts));
+  const low = inv.filter(p => p.quantity <= 2).length;
   return `
   <div class="card" style="margin-bottom:16px"><div class="card-b hero">
-    <div><h2>Welcome to Shop-OS</h2><p>This is a hands-on demo of a repair-shop app with a built-in AI estimate agent. Open a job, describe what the customer says is wrong, then talk it through with the agent until the estimate looks right. Nothing is saved without your approval.</p></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn primary" href="#/new">${icon("plus")}Start with a suspected issue</a><a class="btn" href="#/jobs">Browse jobs</a></div>
+    <div><h2>Welcome to Shop-OS</h2><p>Run a repair job end to end: open a work order, diagnose it with the AI agent, send the estimate for customer approval, then invoice and take payment. It's all a sandbox, and nothing important happens without your click.</p></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn primary" href="#/new">${icon("plus")}Start with a suspected issue</a><a class="btn" href="#/jobs/WO-100488">Try a brake job</a></div>
   </div><div class="card-b" style="padding-top:0"><div class="intro" style="margin-top:0">
-    <div class="step"><b><span class="n">1</span>Open a job</b><p>Pick a work order or create one with the vehicle and suspected issue.</p></div>
-    <div class="step"><b><span class="n">2</span>Talk it through</b><p>The agent ranks likely causes and prices the repair from real shop data, showing every tool it uses.</p></div>
-    <div class="step"><b><span class="n">3</span>You approve</b><p>Saving stops at an approval card with the exact details. You click Approve or Reject.</p></div>
+    <div class="step"><b><span class="n">1</span>Open a job</b><p>Pick a work order or create one from a suspected issue.</p></div>
+    <div class="step"><b><span class="n">2</span>Diagnose with the agent</b><p>Likely causes, parts, technician and price, with every tool call shown.</p></div>
+    <div class="step"><b><span class="n">3</span>Customer approves</b><p>Edit the estimate, send it, approve or decline as the customer.</p></div>
+    <div class="step"><b><span class="n">4</span>Invoice &amp; payment</b><p>Complete the work, issue the invoice, record a simulated payment.</p></div>
   </div></div></div>
   <div class="grid kpis" style="margin-bottom:16px">
-    <div class="card kpi"><div class="card-b"><div class="label">Active Jobs</div><div class="val">${active.length}</div><div class="hint">${jobs.length} work orders total</div></div></div>
-    <div class="card kpi"><div class="card-b"><div class="label">Awaiting Approval</div><div class="val">${approval.length}</div><div class="hint">estimates waiting on customers</div></div></div>
-    <div class="card kpi"><div class="card-b"><div class="label">Low-Stock Parts</div><div class="val">${low.length}</div><div class="hint">${inv.length} parts in the catalog</div></div></div>
-    <div class="card kpi"><div class="card-b"><div class="label">Tech Hours Open</div><div class="val">${open.toFixed(0)}</div><div class="hint">across ${mech.length} technicians this week</div></div></div>
+    <div class="card kpi"><div class="card-b"><div class="label">Active Jobs</div><div class="val">${active}</div><div class="hint">${jobs.length} work orders total</div></div></div>
+    <div class="card kpi"><div class="card-b"><div class="label">Awaiting Approval</div><div class="val">${awaiting}</div><div class="hint">estimates waiting on customers</div></div></div>
+    <div class="card kpi"><div class="card-b"><div class="label">Outstanding</div><div class="val">${money0(outstanding)}</div><div class="hint">invoiced, not yet paid</div></div></div>
+    <div class="card kpi"><div class="card-b"><div class="label">Collected</div><div class="val">${money0(collected)}</div><div class="hint">simulated payments · ${low} parts low on stock</div></div></div>
   </div>
   <div class="grid two">
     <div class="card"><div class="card-h"><h2>Recent work orders</h2><a class="sub" href="#/jobs">View all →</a></div><div class="card-b"><div class="list">
-      ${jobs.slice(0, 6).map(j => `<a href="#/jobs/${encodeURIComponent(j.ticket)}"><span class="mono" style="width:86px;flex:none">${esc(j.ticket)}</span><span class="ellip v" style="flex:1"><b style="font-weight:600">${esc(j.vehicle)}</b> <span class="muted">· ${esc(j.symptoms)}</span></span>${badge(j.status)}</a>`).join("")}
+      ${jobs.slice(0, 7).map(j => `<a href="#/jobs/${encodeURIComponent(j.ticket)}"><span class="mono" style="width:86px;flex:none">${esc(j.ticket)}</span><span class="ellip v" style="flex:1"><b style="font-weight:600">${esc(j.vehicle)}</b> <span class="muted">· ${esc(j.symptoms)}</span></span>${badge(jobStatus(j))}</a>`).join("")}
     </div></div></div>
     <div class="card"><div class="card-h"><h2>Pipeline</h2></div><div class="card-b"><div class="pipe">
       ${Object.entries(counts).map(([st, n]) => `<a href="#/jobs?status=${encodeURIComponent(st)}"><span class="lbl ellip">${esc(st)}</span><span class="bar"><i style="width:${(n / max) * 100}%"></i></span><span class="mono" style="text-align:right">${n}</span></a>`).join("")}
@@ -526,12 +691,22 @@ function vDashboard(){
 }
 function vJobs(params){
   const st = params.get("status") || "", q = (params.get("q") || "").toLowerCase();
-  const jobs = allJobs().filter(j => (!st || j.status === st) && (!q || `${j.ticket} ${j.vehicle} ${j.symptoms}`.toLowerCase().includes(q)));
+  const jobs = allJobs().filter(j => (!st || jobStatus(j) === st) && (!q || `${j.ticket} ${j.vehicle} ${j.symptoms}`.toLowerCase().includes(q)));
   return `
   <div class="toolbar"><label class="search">${icon("search")}<input id="jobQ" placeholder="Search tickets, vehicles, symptoms" value="${esc(params.get("q") || "")}" aria-label="Search jobs"></label>
     ${st ? `<a class="btn" href="#/jobs">Status: ${esc(st)} ✕</a>` : ""}<span class="grow"></span><a class="btn primary" href="#/new">${icon("plus")}New Job</a></div>
-  <div class="card"><div class="tbl-wrap"><table class="t"><thead><tr><th>Ticket</th><th>Vehicle</th><th>Customer concern</th><th>Status</th><th></th></tr></thead><tbody>
-    ${jobs.map(j => `<tr class="click" data-href="#/jobs/${encodeURIComponent(j.ticket)}"><td class="mono">${esc(j.ticket)}</td><td style="font-weight:500;white-space:nowrap">${esc(j.vehicle)}</td><td class="muted" style="min-width:240px">${esc(j.symptoms)}</td><td>${badge(j.status)}</td><td style="white-space:nowrap"><a href="#/jobs/${encodeURIComponent(j.ticket)}">Open with agent →</a></td></tr>`).join("") || `<tr><td colspan="5" class="muted">No jobs match.</td></tr>`}
+  <div class="card"><div class="tbl-wrap"><table class="t"><thead><tr><th>Ticket</th><th>Vehicle</th><th>Customer concern</th><th>Status</th><th class="num">Estimate</th><th></th></tr></thead><tbody>
+    ${jobs.map(j => { const f = S.flow[j.ticket]; const tot = f && f.priced && hasLines(f) ? money(f.priced.total) : "—"; return `<tr class="click" data-href="#/jobs/${encodeURIComponent(j.ticket)}"><td class="mono">${esc(j.ticket)}</td><td style="font-weight:500;white-space:nowrap">${esc(j.vehicle)}</td><td class="muted" style="min-width:220px">${esc(j.symptoms)}</td><td>${badge(jobStatus(j))}</td><td class="num">${tot}</td><td style="white-space:nowrap"><a href="#/jobs/${encodeURIComponent(j.ticket)}">Open →</a></td></tr>`; }).join("") || `<tr><td colspan="6" class="muted">No jobs match.</td></tr>`}
+  </tbody></table></div></div>`;
+}
+function vInvoices(){
+  const rows = Object.entries(S.flow).filter(([, f]) => f.invoice).sort((a, b) => b[1].invoice.issuedAt - a[1].invoice.issuedAt);
+  if (!rows.length) return `<div class="card" style="max-width:720px"><div class="card-b" style="display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0;font-size:17px">No invoices yet</h2>
+    <p class="muted" style="margin:0">Invoices come at the end of a job. Open a work order, let the agent price it, send the estimate, approve it as the customer, start and complete the work, then click <b>Create invoice</b>.</p>
+    <div><a class="btn primary" href="#/jobs/WO-100488">${icon("wrench")}Walk through a brake job</a></div></div></div>`;
+  return `<div class="card"><div class="tbl-wrap"><table class="t"><thead><tr><th>Invoice</th><th>Ticket</th><th>Vehicle</th><th>Issued</th><th class="num">Total</th><th>Status</th></tr></thead><tbody>
+    ${rows.map(([t, f]) => { const j = findJob(t) || { vehicle: "" }; return `<tr class="click" data-href="#/jobs/${encodeURIComponent(t)}?tab=invoice"><td class="mono">${esc(f.invoice.number)}</td><td class="mono">${esc(t)}</td><td>${esc(j.vehicle)}</td><td>${day(f.invoice.issuedAt)}</td><td class="num">${money(f.invoice.total)}</td><td>${f.stage === "paid" ? badge("Paid") : badge("Unpaid")}</td></tr>`; }).join("")}
   </tbody></table></div></div>`;
 }
 function vNew(){
@@ -543,50 +718,257 @@ function vNew(){
   ];
   return `
   <div class="grid two">
-    <form class="card" id="newForm"><div class="card-h"><h2>New work order</h2><span class="sub">Sandbox · only visible in your tab</span></div><div class="card-b" style="display:flex;flex-direction:column;gap:14px">
+    <form class="card" id="newForm"><div class="card-h"><h2>New work order</h2><span class="sub">Sandbox · saved in this browser only</span></div><div class="card-b" style="display:flex;flex-direction:column;gap:14px">
       <label class="f">Vehicle (year, make, model)<input class="in" name="vehicle" maxlength="80" minlength="3" required placeholder="e.g. 2019 Yamaha YZ250F"></label>
       <label class="f">Suspected issue, in the customer's words<textarea class="in" name="symptoms" maxlength="500" minlength="5" required placeholder="What's it doing? When does it happen? Anything already tried?"></textarea></label>
       <div><div class="muted" style="font-size:12px;margin-bottom:6px">Or try an example:</div><div class="examples">${ex.map(([v, s]) => `<button type="button" class="chipbtn" data-ex-v="${esc(v)}" data-ex-s="${esc(s)}">${esc(v)}</button>`).join("")}</div></div>
       <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap"><a class="btn" href="#/jobs">Cancel</a><button class="btn primary" type="submit">${icon("agent")}Create &amp; ask the agent</button></div>
     </div></form>
     <div class="card"><div class="card-h"><h2>What happens next</h2></div><div class="card-b" style="display:flex;flex-direction:column;gap:12px">
-      <div class="step"><b><span class="n">1</span>A work order opens</b><p>It gets a sandbox ticket number and shows up in Jobs, just like in the full app.</p></div>
-      <div class="step"><b><span class="n">2</span>The agent diagnoses</b><p>It lists likely causes with confidence, searches the parts catalog, picks a technician and prices the most likely repair.</p></div>
-      <div class="step"><b><span class="n">3</span>You keep talking</b><p>Add what the tech found ("plug is fouled", "only when cold") and the agent updates the cause and the estimate.</p></div>
-      <div class="step"><b><span class="n">4</span>You approve the draft</b><p>When it looks right, ask it to save. You'll see exactly what will be saved before anything happens.</p></div>
+      <div class="step"><b><span class="n">1</span>The agent diagnoses</b><p>Likely causes with confidence, parts from the catalog, the right technician and a price. It fills in the estimate.</p></div>
+      <div class="step"><b><span class="n">2</span>You refine it</b><p>Tell the agent what the tech found, or edit parts, quantities, hours and technician yourself. Totals re-price on the server.</p></div>
+      <div class="step"><b><span class="n">3</span>Customer approves or declines</b><p>Send the estimate, then answer as the customer in the simulated portal.</p></div>
+      <div class="step"><b><span class="n">4</span>Repair, invoice, payment</b><p>Start and complete the work, issue the invoice, print it, and record a simulated payment.</p></div>
     </div></div>
   </div>`;
 }
+
+/* ── Ticket ── */
 function vJob(ticket){
-  if (!findJob(ticket)) return `<div class="card"><div class="card-b">Work order <b>${esc(ticket)}</b> wasn't found. Sandbox jobs disappear when you reload the page. <a href="#/jobs">Back to jobs</a></div></div>`;
-  return `<div class="ws"><div class="ws-side" id="jobSide"></div><div id="chatSlot" style="min-width:0"></div></div>`;
+  if (!findJob(ticket)) return `<div class="card"><div class="card-b">Work order <b>${esc(ticket)}</b> wasn't found. <a href="#/jobs">Back to jobs</a></div></div>`;
+  return `<div class="card"><div class="card-b thead" id="tHead"></div></div>
+    <div class="ws2"><div class="card" id="tPanel"></div><div id="chatSlot" style="min-width:0"></div></div>`;
 }
-function renderJobSide(){
-  const side = $("jobSide"); if (!side) return;
-  const ticket = side.dataset.ticket, job = findJob(ticket);
-  if (!job) return;
-  const s = S.sessions["job:" + (job.ticket || ticket)] || S.sessions["job:" + ticket];
-  const est = s && s.estimate, drafts = s ? (s.drafts || []) : [];
-  side.innerHTML = `
-  <div class="card"><div class="card-h"><h2 class="mono" style="font-size:14px">${job.ticket === "_new" ? "Creating…" : esc(job.ticket)}</h2><span style="margin-left:auto">${badge(job.status)}</span></div><div class="card-b" style="display:flex;flex-direction:column;gap:12px">
-    <div style="font-size:17px;font-weight:600;letter-spacing:-.01em">${esc(job.vehicle)}</div>
-    <div><div class="muted" style="font-size:12px;margin-bottom:4px">Customer concern</div><div class="concern">${esc(job.symptoms)}</div></div>
-    ${job.sandbox ? `<div class="notice" style="padding:8px 10px;font-size:12px">${icon("shield")}<span>Sandbox work order. It lives only in this tab and is never written to Shop-OS.</span></div>` : `<dl class="kv"><dt>Customer</dt><dd class="muted">hidden in the public demo</dd><dt>Source</dt><dd>Shop-OS snapshot</dd></dl>`}
-  </div></div>
-  <div class="card"><div class="card-h"><h2>Estimate</h2><span class="sub">${est ? "latest from the agent" : ""}</span></div><div class="card-b">
-    ${est ? `
-      ${(est.parts || []).map(p => `<div class="est-row"><span>${esc(p.name)} <span class="muted">× ${p.qty}</span> ${p.in_stock ? "" : `<span class="badge s-amber">short</span>`}</span><span class="mono">${money(p.line_total)}</span></div>`).join("") || `<div class="est-row"><span class="muted">No stocked parts on this estimate</span><span></span></div>`}
-      <div class="est-row"><span>Labor · ${est.labor.hours} h × ${money(est.labor.rate)} <span class="muted">(${esc(est.labor.mechanic)})</span></span><span class="mono">${money(est.labor.total)}</span></div>
-      <div class="est-row" style="border-bottom:0"><span class="muted">Tax (${((est.tax_rate || 0) * 100).toFixed(1)}%)</span><span class="mono">${money(est.tax)}</span></div>
-      <div class="est-total"><span style="font-weight:600">Total</span><b>${money(est.total)}</b></div>
-      <p class="muted" style="font-size:12px;margin:10px 0 0">Calculated by the <span class="mono">calculate_estimate</span> tool from shop prices. The agent can't change it.</p>`
-    : `<div class="empty-est">No estimate yet. Ask the agent to diagnose and price this job and it will appear here.</div>`}
-  </div></div>
-  ${drafts.length ? `<div class="card"><div class="card-h"><h2>Saved drafts</h2><span class="sub">sandbox</span></div><div class="card-b">${drafts.map(d => `<div class="est-row"><span class="mono">${esc(d.draft_id)} · ${esc(d.ticket)}</span><span>${money(d.total)} <span class="badge s-green">approved</span></span></div>`).join("")}</div></div>` : ""}`;
+function nextAction(t, f){
+  if (t === "_new") return `<span class="muted small">The agent is opening your work order…</span>`;
+  switch (f.stage){
+    case "draft": return hasLines(f) && f.priced ? `<button class="btn primary lg" data-act="send">${icon("send")}Send estimate to customer</button>` : `<a class="btn" href="#/jobs/${encodeURIComponent(t)}?tab=estimate">Build the estimate or ask the agent →</a>`;
+    case "sent": return `<a class="btn primary lg" href="#/jobs/${encodeURIComponent(t)}?tab=customer">${icon("phone")}Open customer view to approve or decline</a>`;
+    case "declined": return `<button class="btn lg" data-act="revise">Revise the estimate</button>`;
+    case "approved": return `<button class="btn primary lg" data-act="start">${icon("wrench")}Start work</button>`;
+    case "in_progress": return `<button class="btn primary lg" data-act="complete">${icon("check")}Mark work complete</button>`;
+    case "complete": return `<button class="btn primary lg" data-act="invoice">${icon("invoices")}Create invoice</button>`;
+    case "invoiced": return `<a class="btn primary lg" href="#/jobs/${encodeURIComponent(t)}?tab=invoice">Record payment →</a>`;
+    case "paid": return `<span class="badge s-green" style="font-size:13px;padding:6px 12px">${icon("check", 14)}Paid in full</span>`;
+  }
+  return "";
 }
+function paintHead(t){
+  const el = $("tHead"); if (!el) return;
+  const job = findJob(t); if (!job) return;
+  const f = t === "_new" ? null : getFlow(t);
+  const stage = f ? f.stage : "draft", idx = STAGE_STEP[stage];
+  el.innerHTML = `
+    <div class="thead-top">
+      <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="mono">${t === "_new" ? "Creating…" : esc(job.ticket)}</span>${badge(f ? jobStatus(job) : job.status)}${job.sandbox ? `<span class="badge s-teal">sandbox job</span>` : ""}</div>
+        <div class="title">${esc(job.vehicle)}</div>
+      </div>
+      <div class="next">${f ? nextAction(t, f) : nextAction("_new")}</div>
+    </div>
+    <div class="concern"><span class="muted small">Customer concern · </span>${esc(job.symptoms)}</div>
+    <div class="stepper" aria-label="Job progress">${STEPS.map((name, i) => {
+      const cls = stage === "declined" && i === 1 ? "bad" : i < idx || stage === "paid" ? "done" : i === idx ? "cur" : "";
+      return `<div class="stp ${cls}"><i></i><span class="ellip">${i + 1}. ${name}${stage === "declined" && i === 1 ? " (declined)" : ""}</span></div>`;
+    }).join("")}</div>`;
+}
+function currentTab(){ return parse().params.get("tab") || "estimate"; }
+function paintPanel(t){
+  const el = $("tPanel"); if (!el) return;
+  if (t === "_new"){ el.innerHTML = `<div class="panel"><div class="lockbox"><span class="dots"><i></i><i></i><i></i></span>The agent is opening your work order and diagnosing it. The estimate will appear here.</div></div>`; return; }
+  const f = getFlow(t), tab = currentTab(), base = `#/jobs/${encodeURIComponent(t)}?tab=`;
+  const tabs = [["estimate", "Estimate", f.stage === "declined"], ["customer", "Customer approval", f.stage === "sent"], ["invoice", "Invoice", f.stage === "complete" || f.stage === "invoiced"], ["activity", `Activity (${f.history.length})`, false]];
+  el.innerHTML = `<nav class="tabs" aria-label="Ticket sections">${tabs.map(([k, label, dot]) => `<a href="${base}${k}"${k === tab ? ' aria-current="page"' : ""}>${label}${dot ? '<span class="dot" title="Needs attention"></span>' : ""}</a>`).join("")}</nav>
+    <div class="panel" id="tBody">${tab === "customer" ? pCustomer(t, f) : tab === "invoice" ? pInvoice(t, f) : tab === "activity" ? pActivity(f) : pEstimate(t, f)}</div>`;
+  if (tab === "estimate") paintTotals(t);
+}
+function pEstimate(t, f){
+  const inv = S.shop.inventory || [], mech = S.shop.mechanics || [], s = S.sessions["job:" + t] || S.saved["job:" + t];
+  const ed = editable(f);
+  let top = "";
+  if (f.stage === "declined") top += `<div class="banner bad">${icon("x")}<span><b>Customer declined</b>${f.decline && f.decline.reason ? `: “${esc(f.decline.reason)}”` : ""}. Adjust the estimate (or ask the agent for a cheaper option) and send it again.</span></div>`;
+  if (!ed) top += `<div class="banner">${icon("lock")}<span>This estimate was sent to the customer on ${f.sent ? when(f.sent.at) : ""} and is locked. ${f.stage === "sent" ? "Waiting for their answer." : ""}</span></div>`;
+  if (ed && s && s.estimateArgs && s.estimate && JSON.stringify(normalizeArgs(s.estimateArgs)) !== JSON.stringify(f.lines))
+    top += `<div class="banner">${icon("agent")}<span>The agent's latest price is <b>${money(s.estimate.total)}</b>.</span><span class="grow"></span><button class="btn" data-act="load-agent">Load agent's price</button></div>`;
+  if (ed && !hasLines(f)) top += `<div class="banner warn">${icon("info")}<span>No lines yet. Ask the agent to <b>diagnose and estimate</b> this job (on the right), or add parts and labor below.</span></div>`;
+  const rows = f.lines.parts.map((p, i) => {
+    const it = inv.find(x => x.id === p.part_id) || { name: "Unknown part", partNumber: "", unitCost: 0, quantity: 0 };
+    const short = it.quantity < p.qty;
+    return `<tr><td><div style="font-weight:500">${esc(it.name)}</div><div class="muted small mono">${esc(it.partNumber)} · ${it.quantity} in stock${short ? ` <span class="badge s-amber">short ${p.qty - it.quantity}</span>` : ""}</div></td>
+      <td class="num">${ed ? `<label class="sr" for="q${i}">Quantity</label><input id="q${i}" class="in qty" type="number" min="1" max="50" step="1" value="${p.qty}" data-qty="${i}">` : p.qty}</td>
+      <td class="num">${money(it.unitCost)}</td><td class="num">${money(it.unitCost * p.qty)}</td>
+      <td style="width:34px">${ed ? `<button class="iconbtn" data-act="rm-part" data-i="${i}" aria-label="Remove ${esc(it.name)}">${icon("x", 14)}</button>` : ""}</td></tr>`;
+  }).join("");
+  const avail = inv.filter(p => !f.lines.parts.some(x => x.part_id === p.id));
+  return `${top}
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><h3 style="margin:0;font-size:14px">Parts</h3>${f.source ? `<span class="badge s-blue">${icon("agent", 12)} from ${esc(f.source)}${f.edited ? " · edited" : ""}</span>` : f.edited ? `<span class="badge s-gray">entered by you</span>` : ""}</div>
+    <div class="tbl-wrap"><table class="t"><thead><tr><th>Part</th><th class="num">Qty</th><th class="num">Unit</th><th class="num">Line</th><th></th></tr></thead><tbody>${rows || `<tr><td colspan="5" class="muted">No parts on this estimate.</td></tr>`}</tbody></table></div>
+    ${ed ? `<div class="addrow"><label class="sr" for="addPart">Add a part</label><select class="in" id="addPart"><option value="">Add a part from the catalog…</option>${avail.map(p => `<option value="${p.id}">${esc(p.name)} · ${money(p.unitCost)} · ${p.quantity} in stock</option>`).join("")}</select><label class="sr" for="addQty">Quantity</label><input class="in" id="addQty" type="number" min="1" max="50" value="1"><button class="btn" data-act="add-part">Add</button></div>
+    <p class="muted small" style="margin:-6px 0 0">Not in the catalog? Parts the shop doesn't stock are special-ordered. Mention it in the note to the customer.</p>` : ""}
+    <h3 style="margin:4px 0 0;font-size:14px">Labor</h3>
+    <div class="labor">
+      <label class="f">Hours<input class="in" id="laborH" type="number" min="0" max="40" step="0.25" value="${f.lines.labor_hours}" ${ed ? "" : "disabled"}></label>
+      <label class="f">Technician<select class="in" id="laborM" ${ed ? "" : "disabled"}><option value="">Shop rate (${money(S.shop.settings.laborRate)}/h)</option>${mech.map(m => `<option value="${m.id}"${f.lines.mechanic_id === m.id ? " selected" : ""}>${esc(m.name)} · ${esc(m.specialty)} · ${money(m.laborRate)}/h</option>`).join("")}</select></label>
+    </div>
+    <label class="f">Note to the customer <span class="muted small" style="font-weight:400">(shown on their approval screen and the invoice)</span><textarea class="in" id="custNote" maxlength="400" ${ed ? "" : "disabled"} placeholder="e.g. Sprockets are special order and not included. Recommend a 1-hour diagnostic first.">${esc(f.note)}</textarea></label>
+    <div class="totals" id="estTotals"></div>
+    ${ed ? `<div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap"><button class="btn primary lg" data-act="send" ${hasLines(f) && f.priced ? "" : "disabled"}>${icon("send")}Send estimate to customer</button></div>` : ""}`;
+}
+function normalizeArgs(a){ const f = { lines: null }; setLines(f, a, ""); return f.lines; }
+function paintTotals(t){
+  const el = $("estTotals"); if (!el) return;
+  const f = getFlow(t), p = f.priced;
+  if (!hasLines(f) || !p){ el.innerHTML = `<div class="r muted"><span>Add parts or labor to see a total.</span><span></span></div>`; return; }
+  el.innerHTML = `
+    <div class="r"><span class="muted">Parts</span><span class="mono">${money(p.parts_total)}</span></div>
+    <div class="r"><span class="muted">Labor · ${p.labor.hours} h × ${money(p.labor.rate)} (${esc(p.labor.mechanic)})</span><span class="mono">${money(p.labor.total)}</span></div>
+    <div class="r"><span class="muted">Tax (${((p.tax_rate || 0) * 100).toFixed(1)}%)</span><span class="mono">${money(p.tax)}</span></div>
+    <div class="r grand"><span>Estimate total</span><b>${money(p.total)}</b></div>
+    <div class="muted small">Priced on the server from shop data by the same function the agent uses. Nobody, including the agent, can type in a price.</div>`;
+  const sendBtn = document.querySelector('#tBody [data-act="send"]'); if (sendBtn) sendBtn.disabled = !(hasLines(f) && f.priced);
+}
+function snapshotLines(f){
+  const p = f.priced;
+  return { parts: p.parts.map(x => ({ name: x.name, qty: x.qty, unit: x.unit_cost, total: x.line_total })), labor: { ...p.labor }, parts_total: p.parts_total, subtotal: p.subtotal, tax: p.tax, tax_rate: p.tax_rate, total: p.total };
+}
+function pCustomer(t, f){
+  const job = findJob(t);
+  if (!f.sent) return `<div class="lockbox">${icon("phone", 22)}<b style="color:var(--fg)">Nothing sent yet</b><span>When you send the estimate, the full Shop-OS app texts the customer a link to their portal, where they approve or decline it. In this demo no message is sent. You play the customer here.</span><a class="btn" href="#/jobs/${encodeURIComponent(t)}?tab=estimate">Go to the estimate</a></div>`;
+  const e = f.sent;
+  const decided = f.stage !== "sent";
+  return `<p class="muted small" style="margin:0">${icon("info", 13)} Simulated customer portal: this is what the customer sees on their phone. Approve or decline on their behalf.</p>
+  <div class="portal"><div class="bar-top"><span>9:41</span><span>shop-os portal</span></div>
+    <div class="box">
+      <div class="shop"><span class="mark">${icon("wrench", 14)}</span>${esc(S.shop.settings.shopName || "Shop OS Demo")}</div>
+      <div><div style="font-weight:600">Estimate for your ${esc(job.vehicle)}</div><div class="muted small">Ticket ${esc(t)} · sent ${when(e.at)}</div></div>
+      ${e.lines.parts.map(p => `<div class="line"><span>${esc(p.name)} × ${p.qty}</span><span>${money(p.total)}</span></div>`).join("")}
+      <div class="line"><span>Labor · ${e.lines.labor.hours} h</span><span>${money(e.lines.labor.total)}</span></div>
+      <div class="line muted"><span>Tax</span><span>${money(e.lines.tax)}</span></div>
+      <div class="tot"><span style="font-weight:600">Total</span><b>${money(e.lines.total)}</b></div>
+      ${e.note ? `<div class="concern" style="font-size:12.5px"><b>Note from the shop:</b> ${esc(e.note)}</div>` : ""}
+      ${!decided ? `
+        <button class="btn ok lg" data-act="cust-approve">${icon("check")}Approve estimate</button>
+        <label class="f small" style="font-weight:500">Declining? Tell the shop why (optional)<input class="in" id="declineReason" maxlength="200" placeholder="e.g. Too expensive, I'll do the pads myself"></label>
+        <button class="btn danger" data-act="cust-decline">${icon("x")}Decline</button>`
+      : f.stage === "declined" ? `<div class="banner bad">${icon("x")}<span>Declined ${f.decline ? when(f.decline.at) : ""}${f.decline && f.decline.reason ? `: “${esc(f.decline.reason)}”` : ""}</span></div>`
+      : `<div class="banner ok">${icon("check")}<span>Approved ${f.approvedAt ? when(f.approvedAt) : ""}. Thanks, we'll get started.</span></div>`}
+    </div></div>`;
+}
+function pInvoice(t, f){
+  const job = findJob(t);
+  if (!f.invoice){
+    if (f.stage === "complete") return `<div class="lockbox">${icon("invoices", 22)}<b style="color:var(--fg)">Ready to invoice</b><span>The work is complete. The invoice uses the estimate the customer approved, so it can't drift from what they agreed to.</span><button class="btn primary lg" data-act="invoice">${icon("invoices")}Create invoice</button></div>`;
+    return `<div class="lockbox">${icon("lock", 22)}<b style="color:var(--fg)">Invoice unlocks when the work is complete</b><span>Estimate → customer approval → start work → mark complete → invoice. This job is at <b>${esc(STAGE_LABEL[f.stage])}</b>.</span></div>`;
+  }
+  const inv = f.invoice, L = inv.lines, paid = f.stage === "paid";
+  return `<div class="invoice" id="invoiceDoc">
+    ${paid ? `<div class="stamp">PAID</div>` : ""}
+    <div class="inv-head">
+      <div><div class="inv-logo"><span class="mark">${icon("wrench", 15)}</span>${esc(S.shop.settings.shopName || "Shop OS Demo")}</div><div class="muted small" style="margin-top:4px">Powersports service &amp; repair · sandbox demo</div></div>
+      <div class="inv-meta"><h3>INVOICE</h3><div class="mono">${esc(inv.number)}</div><div>Issued ${day(inv.issuedAt)}</div><div>Due on receipt</div></div>
+    </div>
+    <div class="inv-to">
+      <div><b>Bill to</b>Customer of record<br><span class="muted small">hidden in the public demo</span></div>
+      <div><b>Vehicle</b>${esc(job ? job.vehicle : "")}<br><span class="mono">${esc(t)}</span></div>
+      <div><b>Technician</b>${esc(L.labor.mechanic)}<br><span class="muted small">Approved by customer ${f.approvedAt ? day(f.approvedAt) : ""}</span></div>
+    </div>
+    <div class="tbl-wrap"><table class="t"><thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Unit</th><th class="num">Amount</th></tr></thead><tbody>
+      ${L.parts.map(p => `<tr><td>${esc(p.name)}</td><td class="num">${p.qty}</td><td class="num">${money(p.unit)}</td><td class="num">${money(p.total)}</td></tr>`).join("")}
+      <tr><td>Labor (${esc(L.labor.mechanic)})</td><td class="num">${L.labor.hours} h</td><td class="num">${money(L.labor.rate)}</td><td class="num">${money(L.labor.total)}</td></tr>
+    </tbody></table></div>
+    <div class="totals" style="max-width:320px;margin-left:auto;width:100%">
+      <div class="r"><span class="muted">Subtotal</span><span class="mono">${money(L.subtotal)}</span></div>
+      <div class="r"><span class="muted">Tax (${((L.tax_rate || 0) * 100).toFixed(1)}%)</span><span class="mono">${money(L.tax)}</span></div>
+      <div class="r grand"><span>Total</span><b>${money(L.total)}</b></div>
+      <div class="r"><span class="muted">Paid</span><span class="mono">${money(paid ? L.total : 0)}</span></div>
+      <div class="r" style="font-weight:600"><span>Balance due</span><span class="mono">${money(paid ? 0 : L.total)}</span></div>
+    </div>
+    ${inv.note ? `<div class="concern small"><b>Note:</b> ${esc(inv.note)}</div>` : ""}
+    ${paid ? `<div class="muted small">Payment received ${when(inv.paidAt)} · ${esc(inv.method)} · simulated, no real money moved.</div>` : ""}
+  </div>
+  <div class="payrow">
+    <button class="btn" data-act="print">${icon("print")}Print / save as PDF</button>
+    <span class="grow"></span>
+    ${paid ? `<span class="badge s-green">${icon("check", 13)}Paid in full</span>` : `<label class="sr" for="payMethod">Payment method</label><select class="in" id="payMethod"><option>Card (simulated)</option><option>Cash</option><option>Check</option></select><button class="btn ok lg" data-act="pay">${icon("check")}Record payment</button>`}
+  </div>
+  ${paid ? "" : `<p class="muted small" style="margin:0">Sandbox: recording a payment only marks the invoice paid. In the real app this step goes through the shop's payment processor.</p>`}`;
+}
+function pActivity(f){
+  if (!f.history.length) return `<div class="lockbox">Nothing yet. Every step on this ticket (agent estimates, edits, approvals, invoice, payment) is logged here with who did it.</div>`;
+  const tone = w => w === "Agent" ? "s-blue" : w.startsWith("Customer") ? "s-amber" : w === "You" ? "s-gray" : "s-teal";
+  return `<div class="timeline">${f.history.slice().reverse().map(h => `<div class="tl"><div class="when">${when(h.at)}</div><div><span class="badge ${tone(h.who)}">${esc(h.who)}</span> ${esc(h.what)}</div></div>`).join("")}</div>`;
+}
+function refreshTicket(){
+  const { view, arg } = parse(); if (view !== "jobs" || !arg) return;
+  paintHead(arg);
+  const ae = document.activeElement, body = $("tBody");
+  if (body && ae && body.contains(ae) && /INPUT|TEXTAREA|SELECT/.test(ae.tagName)) return;
+  paintPanel(arg); renderNav("jobs");
+}
+
+/* Ticket actions (one delegated handler) */
+function onTicketClick(e){
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  const t = parse().arg; if (!t || t === "_new") return;
+  const f = getFlow(t), act = b.dataset.act;
+  const go = tab => { if (tab && currentTab() !== tab) location.hash = `#/jobs/${encodeURIComponent(t)}?tab=${tab}`; else refreshTicket(); };
+  if (act === "rm-part" && editable(f)){ f.lines.parts.splice(Number(b.dataset.i), 1); f.edited = true; logEvent(t, "You", "Removed a part from the estimate."); paintPanel(t); reprice(t); return; }
+  if (act === "add-part" && editable(f)){
+    const id = Number($("addPart").value), qty = Math.min(50, Math.max(1, Math.round(Number($("addQty").value) || 1)));
+    if (!id) { $("addPart").focus(); return; }
+    const it = S.shop.inventory.find(x => x.id === id);
+    f.lines.parts.push({ part_id: id, qty }); f.edited = true; logEvent(t, "You", `Added ${qty} × ${it ? it.name : "part"} to the estimate.`);
+    paintPanel(t); reprice(t); return;
+  }
+  if (act === "load-agent"){
+    const s = S.sessions["job:" + t] || S.saved["job:" + t];
+    if (s && s.estimateArgs && editable(f)){ setLines(f, s.estimateArgs, "agent"); f.edited = false; f.priced = s.estimate; logEvent(t, "You", `Loaded the agent's price (${money(s.estimate.total)}) into the estimate.`); reprice(t); paintPanel(t); }
+    return;
+  }
+  if (act === "send" && editable(f) && hasLines(f) && f.priced){
+    f.sent = { at: Date.now(), lines: snapshotLines(f), note: f.note }; f.stage = "sent"; f.decline = null;
+    logEvent(t, "You", `Sent the estimate (${money(f.priced.total)}) to the customer for approval.`);
+    logEvent(t, "System", "Customer portal link would be texted to the customer (not sent: sandbox).");
+    return go("customer");
+  }
+  if (act === "cust-approve" && f.stage === "sent"){ f.stage = "approved"; f.approvedAt = Date.now(); logEvent(t, "Customer (simulated)", `Approved the estimate of ${money(f.sent.lines.total)} in the portal.`); return go("customer"); }
+  if (act === "cust-decline" && f.stage === "sent"){
+    const reason = ($("declineReason") && $("declineReason").value.trim().slice(0, 200)) || "";
+    f.stage = "declined"; f.decline = { at: Date.now(), reason };
+    logEvent(t, "Customer (simulated)", `Declined the estimate${reason ? `: “${reason}”` : "."}`);
+    return go("customer");
+  }
+  if (act === "revise" && f.stage === "declined"){ f.stage = "draft"; logEvent(t, "You", "Reopened the estimate to revise it."); return go("estimate"); }
+  if (act === "start" && f.stage === "approved"){ f.stage = "in_progress"; logEvent(t, "You", `Started work (${f.sent.lines.labor.mechanic}).`); return go(); }
+  if (act === "complete" && f.stage === "in_progress"){ f.stage = "complete"; logEvent(t, "You", "Marked the work complete."); return go("invoice"); }
+  if (act === "invoice" && f.stage === "complete"){
+    const d = new Date();
+    f.invoice = { number: `INV-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}-${String(Math.floor(Math.random() * 900) + 100)}`, issuedAt: Date.now(), lines: f.sent.lines, total: f.sent.lines.total, note: f.sent.note };
+    f.stage = "invoiced"; logEvent(t, "You", `Issued invoice ${f.invoice.number} for ${money(f.invoice.total)}.`);
+    return go("invoice");
+  }
+  if (act === "pay" && f.stage === "invoiced"){
+    const method = ($("payMethod") && $("payMethod").value) || "Card (simulated)";
+    f.stage = "paid"; f.invoice.paidAt = Date.now(); f.invoice.method = method;
+    logEvent(t, "You", `Recorded payment of ${money(f.invoice.total)} by ${method}. Sandbox, no real money moved.`);
+    return go("invoice");
+  }
+  if (act === "print"){ window.print(); return; }
+}
+function onTicketInput(e){
+  const t = parse().arg; if (!t || t === "_new") return;
+  const f = getFlow(t); if (!editable(f)) return;
+  const el = e.target;
+  if (el.dataset.qty != null){ const i = Number(el.dataset.qty); const v = Math.min(50, Math.max(1, Math.round(Number(el.value) || 1))); if (f.lines.parts[i]) { f.lines.parts[i].qty = v; f.edited = true; f.touched = true; repriceSoon(t); } }
+  else if (el.id === "laborH"){ f.lines.labor_hours = Math.min(40, Math.max(0, Number(el.value) || 0)); f.edited = true; f.touched = true; repriceSoon(t); }
+  else if (el.id === "laborM"){ f.lines.mechanic_id = el.value ? Number(el.value) : null; f.edited = true; f.touched = true; repriceSoon(t); }
+  else if (el.id === "custNote"){ f.note = el.value.slice(0, 400); f.touched = true; persist(); }
+}
+
+/* Other views */
 function vMechanics(){
   const mech = S.shop.mechanics || [], max = Math.max(1, ...mech.map(m => m.availableHours || 0));
-  return `<p class="muted" style="margin:0 0 12px">The agent's <span class="mono">find_mechanic</span> tool matches a job to one of these technicians by specialty and open hours.</p>
+  return `<p class="muted" style="margin:0 0 12px">The agent's <span class="mono">find_mechanic</span> tool matches a job to one of these technicians by specialty and open hours. You can also pick one yourself on any estimate.</p>
   <div class="mech">${mech.map(m => `<div class="card"><div class="card-b">
     <div style="display:flex;gap:10px;align-items:center"><span class="avatar" style="background:var(--primary-soft);color:var(--primary);width:38px;height:38px">${esc(m.name.split(" ").map(x => x[0]).join(""))}</span><div><div style="font-weight:600">${esc(m.name)}</div><div class="muted" style="font-size:12px">${esc(m.specialty)}</div></div></div>
     <dl class="kv"><dt>Labor rate</dt><dd>${money(m.laborRate)}/h</dd><dt>Open this week</dt><dd>${m.availableHours} h</dd></dl>
@@ -604,11 +986,16 @@ function vInventory(params){
 }
 function vSettings(){
   const st = S.shop.settings || {};
-  return `<div class="grid two"><div class="card"><div class="card-h"><h2>Shop rates</h2><span class="sub">read-only in the demo</span></div><div class="card-b"><dl class="kv">
+  return `<div class="grid two"><div style="display:flex;flex-direction:column;gap:16px">
+    <div class="card"><div class="card-h"><h2>Shop rates</h2><span class="sub">read-only in the demo</span></div><div class="card-b"><dl class="kv">
     <dt>Shop</dt><dd>${esc(st.shopName || "Shop OS Demo")}</dd><dt>Default labor rate</dt><dd>${money(st.laborRate)}/h</dd><dt>Diagnostic rate</dt><dd>${money(st.diagnosticRate)}/h</dd>
     <dt>Sales tax</dt><dd>${((st.taxRate || 0) * 100).toFixed(1)}%</dd><dt>Confidence floor</dt><dd>${st.minConfidence ?? 0.65} (below this the agent recommends a diagnostic)</dd></dl></div></div>
+    <div class="card"><div class="card-h"><h2>Demo data</h2></div><div class="card-b" style="display:flex;flex-direction:column;gap:10px">
+      <p class="muted" style="margin:0">Your sandbox jobs, estimates, approvals, invoices and agent chats are saved in this browser only. Nobody else sees them.</p>
+      <div><button class="btn danger" id="resetBtn">Erase my demo data</button></div></div></div>
+  </div>
     <div class="card"><div class="card-h"><h2>AI agent guardrails</h2></div><div class="card-b"><dl class="kv">
-    <dt>Messages / chat</dt><dd>12</dd><dt>Tool calls / message</dt><dd>10</dd><dt>Tokens / answer</dt><dd>1,200</dd><dt>Needs approval</dt><dd>save_draft_estimate</dd><dt>Writes to Shop-OS</dt><dd>none (sandbox only)</dd></dl></div></div></div>`;
+    <dt>Messages / chat</dt><dd>12</dd><dt>Tool calls / message</dt><dd>10</dd><dt>Tokens / answer</dt><dd>1,200</dd><dt>Sandbox jobs / chat</dt><dd>3</dd><dt>Agent action that needs you</dt><dd>save_draft_estimate (Approve / Reject card)</dd><dt>Customer gate</dt><dd>estimate must be approved before work or invoice</dd><dt>Prices</dt><dd>always computed on the server from shop data</dd><dt>Writes to Shop-OS</dt><dd>none (sandbox only)</dd></dl></div></div></div>`;
 }
 function vLocked(k){
   const [name, what] = LOCK_INFO[k];
@@ -620,13 +1007,14 @@ function vLocked(k){
   </div></div>`;
 }
 
-/* Router */
+/* ── Router ── */
 function parse(){
   const h = location.hash.replace(/^#\/?/, "") || "dashboard";
   const [path, qs] = h.split("?");
   const [view, arg] = path.split("/");
   return { view, arg: arg ? decodeURIComponent(arg) : "", params: new URLSearchParams(qs || "") };
 }
+let lastRoute = "";
 function render(){
   document.body.classList.remove("nav-open");
   const { view, arg, params } = parse();
@@ -634,8 +1022,9 @@ function render(){
   if (!S.shop){ renderNav(view); v.innerHTML = `<div class="thinking"><span class="dots"><i></i><i></i><i></i></span>Loading shop data…</div>`; return; }
   let navKey = view, title = TITLES[view] || "Shop-OS";
   if (view === "dashboard") v.innerHTML = vDashboard();
-  else if (view === "jobs" && arg){ navKey = "jobs"; const j = findJob(arg); title = j ? `${j.ticket === "_new" ? "New work order" : j.ticket} · ${j.vehicle}` : arg; v.innerHTML = vJob(arg); }
+  else if (view === "jobs" && arg){ navKey = "jobs"; const j = findJob(arg); title = j ? `${arg === "_new" ? "New work order" : j.ticket} · ${j.vehicle}` : arg; v.innerHTML = vJob(arg); }
   else if (view === "jobs") v.innerHTML = vJobs(params);
+  else if (view === "invoices") v.innerHTML = vInvoices();
   else if (view === "new"){ navKey = "jobs"; v.innerHTML = vNew(); }
   else if (view === "agent") v.innerHTML = `<div style="max-width:900px"><div id="chatSlot"></div></div>`;
   else if (view === "mechanics") v.innerHTML = vMechanics();
@@ -651,10 +1040,12 @@ function render(){
     const s = getSession(view === "agent" ? "agent" : "job:" + arg);
     slot.appendChild(s.el); refreshChat(s);
     const log = s.el.querySelector("[data-log]"); log.scrollTop = log.scrollHeight;
-    const side = $("jobSide"); if (side){ side.dataset.ticket = arg; renderJobSide(); }
+    if (view === "jobs"){ paintHead(arg); paintPanel(arg); if (arg !== "_new"){ const f = getFlow(arg); if (hasLines(f) && !f.priced) reprice(arg); } }
   }
   wire();
-  if (!slot) window.scrollTo(0, 0);
+  const route = view + "/" + arg;
+  if (route !== lastRoute) window.scrollTo(0, 0);
+  lastRoute = route;
 }
 function wire(){
   document.querySelectorAll("tr[data-href]").forEach(tr => tr.addEventListener("click", e => { if (!e.target.closest("a")) location.hash = tr.dataset.href; }));
@@ -664,6 +1055,12 @@ function wire(){
   if (jq){ if (parse().params.has("q")) keepFocus(jq); jq.addEventListener("input", debounce(() => { const p = parse().params; jq.value ? p.set("q", jq.value) : p.delete("q"); history.replaceState(null, "", "#/jobs" + (p.toString() ? "?" + p : "")); render(); }, 250)); }
   const iq = $("invQ");
   if (iq){ if (parse().params.has("q")) keepFocus(iq); iq.addEventListener("input", debounce(() => { history.replaceState(null, "", "#/inventory" + (iq.value ? "?q=" + encodeURIComponent(iq.value) : "")); render(); }, 250)); }
+  const rb = $("resetBtn");
+  if (rb) rb.addEventListener("click", () => {
+    if (rb.dataset.armed !== "1"){ rb.dataset.armed = "1"; rb.textContent = "Click again to erase everything"; return; }
+    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    S.sandbox = []; S.flow = {}; S.sessions = {}; S.saved = {}; location.hash = "#/dashboard"; render();
+  });
   const nf = $("newForm");
   if (nf){
     nf.addEventListener("click", e => { const b = e.target.closest("[data-ex-v]"); if (b){ nf.vehicle.value = b.dataset.exV; nf.symptoms.value = b.dataset.exS; nf.symptoms.focus(); } });
@@ -682,25 +1079,31 @@ function wire(){
         const t = ev.job.ticket;
         delete S.sessions["job:_new"]; s.key = "job:" + t; S.sessions[s.key] = s; S.pendingJob = null;
         s.el.querySelector("[data-sub]").textContent = `Working on ${t}`;
-        refreshChat(s);
+        logEvent(t, "You", `Opened work order for a ${vehicle}: “${symptoms}”`);
+        agentToFlow(s, t, data.events || []);
+        persist(); refreshChat(s);
         if (parse().arg === "_new") location.replace("#/jobs/" + encodeURIComponent(t));
       }
     });
   }
 }
 
-/* Shell */
+/* ── Shell ── */
 paintIcons(document);
 $("menuBtn").addEventListener("click", () => document.body.classList.toggle("nav-open"));
 $("scrim").addEventListener("click", () => document.body.classList.remove("nav-open"));
 const how = $("how");
 $("howBtn").addEventListener("click", () => how.showModal());
 how.addEventListener("click", e => { if (e.target === how || e.target.closest("[data-close]")) how.close(); });
+$("view").addEventListener("click", onTicketClick);
+$("view").addEventListener("input", onTicketInput);
+$("view").addEventListener("change", onTicketInput);
 window.addEventListener("hashchange", render);
 let seen = false;
 try { seen = localStorage.getItem("shopos-demo-intro") === "1"; localStorage.setItem("shopos-demo-intro", "1"); } catch (e) {}
+loadStore();
 render();
-fetch("/api/shop").then(r => r.ok ? r.json() : Promise.reject(r.status)).catch(() => ({ jobs: [], inventory: [], mechanics: [], settings: {} })).then(d => {
+fetch("/api/shop").then(r => r.ok ? r.json() : Promise.reject(r.status)).catch(() => ({ jobs: [], inventory: [], mechanics: [], settings: { laborRate: 110 } })).then(d => {
   S.shop = d; render();
   if (!seen && (location.hash === "" || location.hash === "#/dashboard")) how.showModal();
 });

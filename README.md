@@ -13,6 +13,7 @@ A public chat agent for Shop-OS, my powersports shop management app (https://sho
 | Stop condition | Max 6 iterations | Max 10 tool calls and 12 model calls per message, 12 messages per chat |
 | Human gate | None | Approve / Reject card showing the exact arguments before any save |
 | Access | Private page | Public link, no login |
+| Workflow | None | Full job flow in each ticket: editable estimate → send → simulated customer approve/decline (second human gate) → start work → complete → invoice (printable) → simulated payment, with an activity log |
 | Interface | Single trace page | A Shop-OS lookalike (same sidebar, dashboard, jobs, inventory, mechanics and settings pages) with the agent built into each job: open or create a work order with a suspected issue, talk it through, watch the live estimate update, approve the draft |
 
 Expansion used for the rubric: **a second real tool** (`lookup_work_order`, which reads the work orders stored in Shop-OS), plus a gated write tool.
@@ -21,6 +22,7 @@ Expansion used for the rubric: **a second real tool** (`lookup_work_order`, whic
 
 - `public/index.html` · the Shop-OS-style demo app with the agent built in
 - `api/shop.js` · read-only shop data for the UI (jobs, parts, technicians, rates)
+- `api/price.js` · server-side re-pricing for estimates edited in the ticket (same function as the agent's calculate_estimate)
 - `api/chat.js` · the serverless endpoint (Vercel function)
 - `lib/agent.js` · the agent loop, caps, human gate, signed chat state, system prompt
 - `lib/tools.js` · the six tools

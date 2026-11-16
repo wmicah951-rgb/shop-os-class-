@@ -91,3 +91,12 @@ console.log("\nALL OFFLINE TESTS PASSED");
   console.log("sandbox job ok:", job.ticket, "saved total", saved.total);
 }
 console.log("ALL OFFLINE TESTS PASSED (incl. sandbox jobs)");
+
+// 8. /api/price re-prices edited estimates from shop data only (client cannot set prices)
+{
+  const { default: priceHandler } = await import("../api/price.js");
+  let out; const res = { setHeader(){}, status(c){ this.c = c; return this; }, json(o){ out = o; } };
+  await priceHandler({ method: "POST", body: { labor_hours: 1.5, mechanic_id: 11, parts: [{ part_id: 35, qty: 1, unit_cost: 0 }, { part_id: 40, qty: 1 }], total: 1 } }, res);
+  assert.equal(res.c, 200); assert.equal(out.total, 243.47, "price comes from shop data, ignores client unit_cost/total");
+  console.log("price endpoint ok:", out.total);
+}

@@ -6,19 +6,20 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import handler from "./api/chat.js";
 import shopHandler from "./api/shop.js";
+import priceHandler from "./api/price.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "public");
 const port = Number(process.env.PORT) || 3000;
 
 http.createServer(async (req, res) => {
-  if (req.url.startsWith("/api/chat") || req.url.startsWith("/api/shop")) {
+  if (req.url.startsWith("/api/chat") || req.url.startsWith("/api/shop") || req.url.startsWith("/api/price")) {
     let raw = "";
     req.on("data", c => raw += c);
     req.on("end", async () => {
       try { req.body = raw ? JSON.parse(raw) : {}; } catch { req.body = {}; }
       res.status = code => { res.statusCode = code; return res; };
       res.json = obj => { res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify(obj)); };
-      await (req.url.startsWith("/api/shop") ? shopHandler : handler)(req, res);
+      await (req.url.startsWith("/api/shop") ? shopHandler : req.url.startsWith("/api/price") ? priceHandler : handler)(req, res);
     });
     return;
   }
